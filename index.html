@@ -10,10 +10,14 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; padding-bottom: 80px; overflow-x: hidden; }
         
-        /* Анимированный фон */
+        /* Красивый фон */
         .bg-glow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.3; background-image: radial-gradient(circle at 10% 20%, rgba(74,134,255,0.3) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(139,92,246,0.3) 0%, transparent 40%); animation: bgPulse 8s ease-in-out infinite alternate; }
         @keyframes bgPulse { from { transform: scale(1); opacity: 0.2; } to { transform: scale(1.1); opacity: 0.5; } }
         
+        /* Всплывающие уведомления (Toast) */
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 1000; box-shadow: 0 10px 30px rgba(74,134,255,0.4); }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
         .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; position: relative; z-index: 1; animation: slideDown 0.5s ease-out; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         
@@ -43,8 +47,10 @@
         .card img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
         .card .label { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
         .card .price { font-size: 13px; opacity: 0.8; margin-bottom: 8px; color: var(--gold); font-weight: 700; }
-        .btn-add { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: transform 0.1s; }
+        
+        .btn-add { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.2s; }
         .btn-add:active { transform: scale(0.95); }
+        .btn-add.added { background: #2ecc71; } /* Зеленая кнопка при добавлении */
 
         /* Профиль */
         .profile-card { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
@@ -105,6 +111,7 @@
 </head>
 <body>
     <div class="bg-glow"></div>
+    <div id="toast" class="toast">Добавлено в корзину</div>
 
     <div id="screen-catalog">
         <div class="header">
@@ -112,7 +119,7 @@
                 <div class="avatar">🎧</div>
                 <div>
                     <div class="title">Sever Tech Shop</div>
-                    <div class="subtitle" id="user-name">Загрузка…</div>
+                    <div class="subtitle" id="user-name">Покупатель</div>
                 </div>
             </div>
         </div>
@@ -126,7 +133,7 @@
 
     <div id="screen-profile" style="display: none;">
         <div class="profile-card">
-            <h2 id="profile-name">Загрузка...</h2>
+            <h2 id="profile-name">Покупатель</h2>
             <p>Добро пожаловать в Sever Tech Shop!</p>
         </div>
         <button class="menu-btn" onclick="loadMyOrders()">📦 Мои заказы</button>
@@ -134,7 +141,7 @@
         <button class="menu-btn" onclick="openChat('support', 'Поддержка')">💬 Поддержка</button>
         <button class="menu-btn" onclick="showPromos()">🎁 Акции</button>
         <button class="menu-btn" onclick="showReferral()">🔗 Пригласить друга</button>
-        <button class="menu-btn" onclick="tg.showAlert('FAQ скоро появится')">❓ FAQ</button>
+        <button class="menu-btn" onclick="showToast('FAQ скоро появится')">❓ FAQ</button>
     </div>
 
     <div id="screen-chat" style="display: none;">
@@ -211,9 +218,13 @@
             const name = (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
             document.getElementById('user-name').textContent = name;
             document.getElementById('profile-name').textContent = name;
-        } else {
-            document.getElementById('user-name').textContent = 'Гость';
-            document.getElementById('profile-name').textContent = 'Гость';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
         const API_URL = 'https://manliness-extent-absolute.ngrok-free.dev';
@@ -284,7 +295,7 @@
                         <div class="emoji">${p.image_url ? `<img src="${p.image_url}">` : '📦'}</div>
                         <div class="label">${p.name}</div>
                         <div class="price">${p.price} ₽</div>
-                        <button class="btn-add" onclick="addToCart(${p.id}, '${p.name}', ${p.price})">В корзину</button>
+                        <button class="btn-add" id="btn-${p.id}" onclick="addToCart(${p.id}, '${p.name}', ${p.price})">В корзину</button>
                     `; grid.appendChild(card);
                 });
             } catch (error) { grid.innerHTML = `<p style="grid-column: span 2; text-align: center; color: red;">Ошибка загрузки</p>`; }
@@ -377,24 +388,24 @@
                     });
                 }
                 loadMessages();
-            } catch (error) { tg.showAlert('Ошибка отправки'); }
+            } catch (error) { showToast('Ошибка отправки'); }
         }
 
         async function showPromos() {
             try {
                 const response = await fetch(API_URL + '/api/promotions', { headers: { 'ngrok-skip-browser-warning': 'true' } });
                 const promos = await response.json();
-                if (promos.length === 0) { tg.showAlert('Акций пока нет'); return; }
+                if (promos.length === 0) { showToast('Акций пока нет'); return; }
                 let text = '🎁 Акции:\n\n';
                 promos.forEach(p => { text += `• ${p.title}\n${p.description}\n\n`; });
-                tg.showAlert(text);
-            } catch (e) { tg.showAlert('Ошибка загрузки акций'); }
+                showToast(text);
+            } catch (e) { showToast('Ошибка загрузки акций'); }
         }
 
         function showReferral() {
             const code = user?.id ? `ref_${user.id}` : 'ref_0';
             const link = `https://t.me/SeTeSh_bot?start=${code}`;
-            tg.showAlert(`Пригласи друга и получи 100 XP!\n\nТвоя ссылка:\n${link}`);
+            showToast(`Пригласи друга и получи 100 XP!\n\nТвоя ссылка:\n${link}`);
         }
 
         function openReviewModal(orderId) {
@@ -418,7 +429,7 @@
         }
 
         async function submitReview() {
-            if (currentRating === 0) { tg.showAlert('Выберите оценку'); return; }
+            if (currentRating === 0) { showToast('Выберите оценку'); return; }
             const text = document.getElementById('review-text').value.trim();
             
             try {
@@ -432,16 +443,28 @@
                         text: text || "Без комментария"
                     })
                 });
-                tg.showAlert('Спасибо за отзыв!');
+                showToast('Спасибо за отзыв!');
                 closeReviewModal();
-            } catch (error) { tg.showAlert('Ошибка отправки'); }
+            } catch (error) { showToast('Ошибка отправки'); }
         }
 
         function addToCart(id, name, price) {
             const existing = cart.find(item => item.product_id === id);
             if (existing) existing.quantity++;
             else cart.push({ product_id: id, name: name, price: price, quantity: 1 });
-            updateCartUI(); tg.showAlert('Добавлено в корзину');
+            updateCartUI(); 
+            showToast('Добавлено в корзину');
+            
+            // Меняем кнопку на "Добавлено"
+            const btn = document.getElementById('btn-' + id);
+            if (btn) {
+                btn.textContent = 'Добавлено ✓';
+                btn.classList.add('added');
+                setTimeout(() => {
+                    btn.textContent = 'В корзину';
+                    btn.classList.remove('added');
+                }, 1500);
+            }
         }
 
         function updateCartUI() {
@@ -461,7 +484,7 @@
         }
 
         function removeFromCart(index) { cart.splice(index, 1); updateCartUI(); }
-        function openCart() { if (cart.length === 0) { tg.showAlert('Корзина пуста'); return; } document.getElementById('cart-modal').classList.add('active'); loadSlots(); loadProfile(); }
+        function openCart() { if (cart.length === 0) { showToast('Корзина пуста'); return; } document.getElementById('cart-modal').classList.add('active'); loadSlots(); loadProfile(); }
         function closeCart() { document.getElementById('cart-modal').classList.remove('active'); }
 
         async function loadSlots() {
@@ -487,7 +510,7 @@
 
         function requestGeo() {
             if (!tg.LocationManager) {
-                tg.showAlert('Геолокация не поддерживается. Нажмите "Пропустить".');
+                showToast('Геолокация не поддерживается. Нажмите "Пропустить".');
                 return;
             }
             tg.LocationManager.init(() => {
@@ -499,7 +522,7 @@
                         btn.classList.add('ok');
                         skipGeoFlag = false;
                     } else {
-                        tg.showAlert('Не удалось получить гео. Нажмите "Пропустить".');
+                        showToast('Не удалось получить гео. Нажмите "Пропустить".');
                     }
                 });
             });
@@ -579,9 +602,9 @@
             const address = document.getElementById('order-address').value.trim();
             const promo = document.getElementById('order-promo').value.trim().toUpperCase();
             
-            if (!name || !phone || !address) { tg.showAlert('Заполните все поля'); return; }
-            if (!selectedSlot) { tg.showAlert('Выберите слот доставки'); return; }
-            if (!currentGeo.lat && !skipGeoFlag) { tg.showAlert('Отправьте геопозицию или нажмите "Пропустить"'); return; }
+            if (!name || !phone || !address) { showToast('Заполните все поля'); return; }
+            if (!selectedSlot) { showToast('Выберите слот доставки'); return; }
+            if (!currentGeo.lat && !skipGeoFlag) { showToast('Отправьте геопозицию или нажмите "Пропустить"'); return; }
             
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             const orderData = {
@@ -609,8 +632,8 @@
                     document.getElementById('geo-btn').textContent = '📍 Отправить геопозицию';
                     document.getElementById('geo-btn').classList.remove('ok');
                     document.getElementById('order-promo').value = '';
-                } else { tg.showAlert('Ошибка оформления'); }
-            } catch (error) { tg.showAlert('Ошибка сети'); }
+                } else { showToast('Ошибка оформления'); }
+            } catch (error) { showToast('Ошибка сети'); }
         }
 
         loadCategories();
