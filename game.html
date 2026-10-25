@@ -9,56 +9,78 @@
         :root { --bg: #0a0a12; --card: #141424; --accent: #4a86ff; --accent2: #8b5cf6; --text: #e8e8f0; --danger: #ff4a4a; --gold: #ffcc00; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; padding-bottom: 40px; overflow-x: hidden; }
-        .bg-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.3; background-image: radial-gradient(circle at 20% 30%, rgba(74,134,255,0.4) 0%, transparent 20%), radial-gradient(circle at 80% 70%, rgba(139,92,246,0.4) 0%, transparent 20%); animation: bgPulse 4s ease-in-out infinite alternate; }
-        @keyframes bgPulse { from { transform: scale(1); opacity: 0.2; } to { transform: scale(1.1); opacity: 0.4; } }
+        
+        /* Красивый анимированный фон */
+        .bg-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.4; background-image: radial-gradient(circle at 20% 30%, rgba(74,134,255,0.4) 0%, transparent 30%), radial-gradient(circle at 80% 70%, rgba(139,92,246,0.4) 0%, transparent 30%); animation: bgPulse 6s ease-in-out infinite alternate; }
+        @keyframes bgPulse { from { transform: scale(1); opacity: 0.3; } to { transform: scale(1.1); opacity: 0.5; } }
+        
         .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; position: relative; z-index: 1; }
         .title { font-size: 22px; font-weight: 800; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .subtitle { font-size: 13px; opacity: 0.6; }
+        
         .mob-card { background: linear-gradient(135deg, rgba(20,20,36,0.95), rgba(30,30,50,0.95)); border: 1px solid rgba(74, 134, 255, 0.3); border-radius: 24px; padding: 20px; text-align: center; margin-bottom: 16px; position: relative; z-index: 1; box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 30px rgba(74,134,255,0.1); transition: box-shadow 0.5s ease; overflow: hidden; }
+        
         .hero-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; position: relative; z-index: 2; }
         .hero-mini { font-size: 28px; filter: drop-shadow(0 0 10px var(--accent)); }
         .hero-title-label { font-size: 12px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        
         .progress-to-boss { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; margin-bottom: 12px; overflow: hidden; position: relative; z-index: 2; }
         .progress-to-boss-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8a4a); transition: width 0.4s ease; box-shadow: 0 0 15px var(--gold); }
+        
         .location-name { font-size: 14px; opacity: 0.8; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; position: relative; z-index: 2; margin-bottom: 8px; }
         .boss-label { font-size: 12px; color: var(--danger); font-weight: 800; height: 18px; letter-spacing: 2px; position: relative; z-index: 2; text-shadow: 0 0 15px var(--danger); }
+        
         .click-area { width: 100%; padding: 10px; cursor: pointer; user-select: none; position: relative; z-index: 2; }
         .mob-svg { width: 120px; height: 120px; margin: 10px auto; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8)); animation: mobFloat 3s ease-in-out infinite; transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes mobFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .click-area:active .mob-svg { transform: scale(0.85); }
+        
         .mob-hp-bar { width: 100%; height: 24px; background: rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; margin-top: 14px; border: 1px solid rgba(255,255,255,0.08); position: relative; z-index: 2; }
         .mob-hp-fill { height: 100%; background: linear-gradient(90deg, #ff2a2a, #ff8a4a, #ffcc00); transition: width 0.2s ease; box-shadow: 0 0 20px rgba(255,74,74,0.6); }
         .mob-info { font-size: 14px; opacity: 0.8; margin-top: 10px; font-weight: 600; position: relative; z-index: 2; }
+        
         .stats-panel { display: flex; justify-content: space-around; margin-top: 16px; background: rgba(0,0,0,0.3); border-radius: 14px; padding: 12px; position: relative; z-index: 2; }
         .stat-item { text-align: center; }
         .stat-value { font-size: 22px; font-weight: 900; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .stat-label { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+        
         .floating-text { position: absolute; font-weight: 900; font-size: 30px; pointer-events: none; animation: floatUp 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; z-index: 100; text-shadow: 0 0 15px currentColor; }
         .crit-text { color: var(--gold); font-size: 40px; text-shadow: 0 0 25px var(--gold), 0 0 50px var(--danger); }
         @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-90px) scale(1.6); } }
+        
         .crit-particle { position: absolute; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; pointer-events: none; z-index: 99; box-shadow: 0 0 10px var(--gold); }
         @keyframes particleFly { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+        
         .tabs { display: flex; gap: 4px; margin: 20px 0; position: relative; z-index: 1; }
         .tab { flex: 1; padding: 10px 2px; text-align: center; background: var(--card); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; opacity: 0.5; font-size: 11px; font-weight: 700; transition: all 0.3s ease; text-transform: uppercase; }
         .tab.active { opacity: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border-color: transparent; box-shadow: 0 5px 25px rgba(74,134,255,0.5); }
+        
         .shop-item, .skin-item { background: var(--card); border-radius: 16px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
         .skin-item { border: 1px solid transparent; }
         .skin-item.active { border-color: var(--accent); background: linear-gradient(135deg, rgba(74,134,255,0.15), rgba(139,92,246,0.15)); }
+        
         .item-icon { width: 40px; height: 40px; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(74,134,255,0.3)); }
+        
         .btn-buy { padding: 10px 18px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-size: 12px; font-weight: 800; cursor: pointer; transition: transform 0.1s ease; text-transform: uppercase; box-shadow: 0 4px 15px rgba(74,134,255,0.3); }
         .btn-buy:active { transform: scale(0.93); }
         .btn-buy:disabled { background: #222; opacity: 0.4; cursor: default; box-shadow: none; }
+        
         .hero-avatar { font-size: 110px; text-align: center; margin: 20px 0; filter: drop-shadow(0 0 40px var(--accent)); animation: mobFloat 4s ease-in-out infinite; }
+        
         .lb-item { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
         .lb-item.me { background: linear-gradient(135deg, rgba(74,134,255,0.2), rgba(139,92,246,0.2)); border-color: var(--accent); }
+        
         .stats-box { background: var(--card); border-radius: 16px; padding: 20px; margin-top: 16px; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
         .stats-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
         .stats-row b { color: var(--accent); font-size: 16px; }
+        
         .prestige-card { background: linear-gradient(135deg, #2a1a4a, #1a1a2e); border: 1px solid var(--gold); border-radius: 20px; padding: 20px; text-align: center; margin-top: 16px; position: relative; z-index: 1; }
         .prestige-title { font-size: 24px; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px var(--gold); margin-bottom: 10px; }
+        
         .quest-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
         .quest-progress { height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; margin-top: 8px; overflow: hidden; }
         .quest-progress-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+        
         .item-stats { font-size: 11px; opacity: 0.7; margin-top: 4px; color: var(--accent); }
     </style>
 </head>
@@ -109,6 +131,19 @@
     <div id="tab-shop" class="tab-content" style="display:none; position: relative; z-index: 1;">
         <h3 style="margin-bottom: 12px;">🏪 Предметы (Урон)</h3>
         <div id="clicker-shop"></div>
+        
+        <h3 style="margin: 20px 0 10px; color: var(--gold);">⚡ Автоклик (Пассивный урон)</h3>
+        <div class="shop-item" style="border-color: var(--gold);">
+            <div style="font-size: 32px;">⚙️</div>
+            <div style="flex: 1;">
+                <div style="font-weight: 700; font-size: 15px;">Улучшить Автоклик</div>
+                <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">+5 XP в секунду к пассивному доходу</div>
+                <div class="item-stats" style="color: var(--gold);">Текущий уровень: <b id="auto-level">0</b></div>
+            </div>
+            <button class="btn-buy" onclick="upgradeAuto()" style="background: var(--gold); color: black;" id="btn-auto">
+                <span id="auto-cost">5000</span> XP
+            </button>
+        </div>
     </div>
 
     <div id="tab-hero" class="tab-content" style="display:none; position: relative; z-index: 1;">
@@ -192,6 +227,7 @@
             "gpu": `<svg viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="1.5"><rect x="2" y="8" width="20" height="8" rx="2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/><path d="M12 8v8"/></svg>`,
             "pc": `<svg viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><rect x="5" y="6" width="14" height="10" rx="1"/><path d="M8 20h8"/></svg>`,
             "server": `<svg viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg>`,
+            
             "mob_forest": `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#2d4a2d" stroke="#4a86ff" stroke-width="2"/><circle cx="35" cy="40" r="8" fill="#ff4a4a"/><circle cx="65" cy="40" r="8" fill="#ff4a4a"/><path d="M40 60 Q50 70 60 60" stroke="#fff" stroke-width="3" fill="none"/></svg>`,
             "mob_mountain": `<svg viewBox="0 0 100 100"><path d="M10 80 L50 20 L90 80 Z" fill="#4a4a5a" stroke="#4a86ff" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="#ff4a4a"/></svg>`,
             "mob_castle": `<svg viewBox="0 0 100 100"><rect x="20" y="40" width="60" height="50" fill="#2a2a2a" stroke="#4a86ff" stroke-width="2"/><path d="M20 40 L30 20 L40 40 M60 40 L70 20 L80 40" fill="#2a2a2a" stroke="#4a86ff" stroke-width="2"/><circle cx="50" cy="60" r="10" fill="#ff4a4a"/></svg>`,
@@ -216,7 +252,8 @@
             prestige_level: 0, daily: 0, max_daily: 1000,
             mobLevel: 1, mobsKilled: 0, mobsPerLocation: 20,
             currentMobHp: 100, maxMobHp: 100, isBoss: false,
-            crits: 0, totalMobs: 0, isSpawning: false
+            crits: 0, totalMobs: 0, isSpawning: false,
+            clickerLevel: 0
         };
         
         let cosmetics = [];
@@ -277,12 +314,14 @@
                     state.active_bg = data.active_bg || "bg_default";
                     state.active_title = data.active_title || "title_noob";
                     state.prestige_level = data.prestige_level || 0;
+                    state.clickerLevel = data.clicker_level || 0;
                     
                     if (state.currentMobHp <= 0 || state.currentMobHp === 100) spawnMob();
                     else render();
                 }
             } catch (e) { console.error(e); }
             loadCosmetics();
+            updateAutoUI();
         }
 
         async function loadCosmetics() {
@@ -293,6 +332,25 @@
                 renderCosmetics();
                 updateHeroVisuals();
             } catch (e) { console.error(e); }
+        }
+
+        function updateAutoUI() {
+            const lvlEl = document.getElementById('auto-level');
+            const costEl = document.getElementById('auto-cost');
+            const btn = document.getElementById('btn-auto');
+            if (!lvlEl || !costEl) return;
+            
+            lvlEl.textContent = state.clickerLevel;
+            const nextCost = 5000 * (state.clickerLevel + 1);
+            costEl.textContent = formatNumber(nextCost);
+            
+            if (state.xp >= nextCost) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
         }
 
         function updateHeroVisuals() {
@@ -383,6 +441,7 @@
             });
             
             updateHeroVisuals();
+            updateAutoUI();
         }
 
         function renderCosmetics() {
@@ -512,6 +571,24 @@
                 document.getElementById('mob-hp-fill').style.width = Math.max(0, (state.currentMobHp / state.maxMobHp) * 100) + '%';
                 document.getElementById('mob-info').textContent = 'HP: ' + Math.round(state.currentMobHp) + ' / ' + Math.round(state.maxMobHp);
             }
+        }
+
+        async function upgradeAuto() {
+            try {
+                const r = await fetch(API_URL + '/api/clicker/upgrade_auto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ user_id: MY_ID, item_key: 'auto' })
+                });
+                const data = await r.json();
+                if (data.ok) {
+                    state.clickerLevel = data.new_level;
+                    tg.showAlert('✅ Автоклик улучшен!');
+                    loadStatus();
+                } else {
+                    tg.showAlert(data.message || 'Ошибка');
+                }
+            } catch (e) { tg.showAlert('Ошибка сети'); }
         }
 
         async function buyItem(key) {
