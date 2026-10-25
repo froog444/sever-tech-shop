@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Кликер — Sever Tech Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { 
+            --bg: #0a0a12; 
+            --card: #141424; 
+            --accent: #4a86ff; 
+            --accent2: #8b5cf6; 
+            --text: #e8e8f0; 
+            --danger: #ff4a4a; 
+            --gold: #ffcc00;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+            background: var(--bg);
+            color: var(--text); 
+            min-height: 100vh; 
+            padding: 16px; 
+            padding-bottom: 40px; 
+            overflow-x: hidden;
+        }
+        
+        /* Анимированный фон */
+        .bg-particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+            background-image: radial-gradient(circle at 20% 30%, rgba(74,134,255,0.4) 0%, transparent 20%),
+                              radial-gradient(circle at 80% 70%, rgba(139,92,246,0.4) 0%, transparent 20%);
+            animation: bgPulse 4s ease-in-out infinite alternate;
+        }
+        @keyframes bgPulse { 
+            from { transform: scale(1); opacity: 0.2; } 
+            to { transform: scale(1.1); opacity: 0.4; } 
+        }
+        
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; position: relative; z-index: 1; }
+        .title { font-size: 22px; font-weight: 800; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 20px rgba(74,134,255,0.3); }
+        .subtitle { font-size: 13px; opacity: 0.6; }
+        
+        /* Карточка боя с параллаксом */
+        .mob-card { 
+            background: linear-gradient(135deg, rgba(20,20,36,0.95), rgba(30,30,50,0.95)); 
+            border: 1px solid rgba(74, 134, 255, 0.3);
+            border-radius: 24px; 
+            padding: 20px; 
+            text-align: center; 
+            margin-bottom: 16px; 
+            position: relative; 
+            z-index: 1;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 30px rgba(74,134,255,0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: box-shadow 0.5s ease;
+            overflow: hidden;
+        }
+        
+        .mob-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(74,134,255,0.15) 0%, transparent 60%);
+            pointer-events: none;
+            animation: rotateGlow 8s linear infinite;
+        }
+        @keyframes rotateGlow { 
+            from { transform: rotate(0deg); } 
+            to { transform: rotate(360deg); } 
+        }
+        
+        .hero-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; position: relative; z-index: 2; }
+        .hero-mini { font-size: 28px; filter: drop-shadow(0 0 10px var(--accent)); }
+        .hero-title-label { font-size: 12px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* Прогресс до босса */
+        .progress-to-boss { 
+            width: 100%; height: 6px; 
+            background: rgba(0,0,0,0.5); 
+            border-radius: 3px; margin-bottom: 12px; overflow: hidden; 
+            position: relative; z-index: 2;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .progress-to-boss-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--gold), #ff8a4a); 
+            transition: width 0.4s ease; 
+            box-shadow: 0 0 15px var(--gold);
+        }
+        
+        .location-name { font-size: 14px; opacity: 0.8; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; position: relative; z-index: 2; margin-bottom: 8px; }
+        .boss-label { font-size: 12px; color: var(--danger); font-weight: 800; height: 18px; letter-spacing: 2px; position: relative; z-index: 2; text-shadow: 0 0 15px var(--danger); }
+        
+        /* Анимированный моб */
+        .click-area { width: 100%; padding: 10px; cursor: pointer; user-select: none; position: relative; z-index: 2; }
+        .mob-emoji { 
+            font-size: 90px; margin: 10px 0; 
+            transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1); 
+            filter: drop-shadow(0 10px 25px rgba(0,0,0,0.7));
+            animation: mobFloat 3s ease-in-out infinite;
+        }
+        @keyframes mobFloat { 
+            0%, 100% { transform: translateY(0); } 
+            50% { transform: translateY(-8px); } 
+        }
+        .click-area:active .mob-emoji { transform: scale(0.85) !important; }
+        .mob-emoji.boss { filter: drop-shadow(0 0 30px var(--danger)); font-size: 105px; }
+        
+        /* Полоска HP */
+        .mob-hp-bar { 
+            width: 100%; height: 24px; 
+            background: rgba(0,0,0,0.6); 
+            border-radius: 12px; overflow: hidden; margin-top: 14px; 
+            border: 1px solid rgba(255,255,255,0.08);
+            position: relative; z-index: 2;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .mob-hp-fill { 
+            height: 100%; 
+            background: linear-gradient(90deg, #ff2a2a, #ff8a4a, #ffcc00); 
+            transition: width 0.2s ease; 
+            box-shadow: 0 0 20px rgba(255,74,74,0.6);
+            position: relative;
+        }
+        .mob-hp-fill::after {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 50%; background: rgba(255,255,255,0.25); border-radius: 12px 12px 0 0;
+        }
+        .mob-info { font-size: 14px; opacity: 0.8; margin-top: 10px; font-weight: 600; position: relative; z-index: 2; }
+        
+        /* Панель XP и урона */
+        .stats-panel {
+            display: flex; justify-content: space-around; margin-top: 16px;
+            background: rgba(0,0,0,0.3); border-radius: 14px; padding: 12px;
+            position: relative; z-index: 2;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 22px; font-weight: 900; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+        
+        /* Всплывающие цифры */
+        .floating-text { 
+            position: absolute; font-weight: 900; font-size: 30px; 
+            pointer-events: none; animation: floatUp 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+            z-index: 100; text-shadow: 0 0 15px currentColor;
+        }
+        .crit-text { color: var(--gold); font-size: 40px; text-shadow: 0 0 25px var(--gold), 0 0 50px var(--danger); }
+        @keyframes floatUp { 
+            0% { opacity: 1; transform: translateY(0) scale(1); } 
+            100% { opacity: 0; transform: translateY(-90px) scale(1.6); } 
+        }
+        
+        /* Частицы крита */
+        .crit-particle {
+            position: absolute;
+            width: 6px; height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99;
+            box-shadow: 0 0 10px var(--gold);
+        }
+        @keyframes particleFly { 
+            0% { transform: translate(0,0) scale(1); opacity: 1; } 
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } 
+        }
+        
+        /* Вкладки */
+        .tabs { display: flex; gap: 6px; margin: 20px 0; position: relative; z-index: 1; }
+        .tab { 
+            flex: 1; padding: 12px 4px; text-align: center; 
+            background: var(--card); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px; cursor: pointer; opacity: 0.5; font-size: 12px; font-weight: 700;
+            transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .tab.active { 
+            opacity: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); 
+            color: white; border-color: transparent;
+            box-shadow: 0 5px 25px rgba(74,134,255,0.5);
+        }
+        
+        /* Магазин */
+        .shop-item, .skin-item { 
+            background: var(--card); border-radius: 16px; padding: 14px; 
+            margin-bottom: 10px; display: flex; align-items: center; gap: 14px;
+            border: 1px solid rgba(255,255,255,0.03); transition: all 0.2s ease;
+            position: relative; z-index: 1;
+        }
+        .skin-item { border: 1px solid transparent; }
+        .skin-item.active { border-color: var(--accent); background: linear-gradient(135deg, rgba(74,134,255,0.15), rgba(139,92,246,0.15)); box-shadow: 0 0 20px rgba(74,134,255,0.3); }
+        
+        .btn-buy {
+            padding: 10px 18px; border-radius: 12px; border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white;
+            font-size: 12px; font-weight: 800; cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(74,134,255,0.3);
+        }
+        .btn-buy:active { transform: scale(0.93); }
+        .btn-buy:disabled { background: #222; opacity: 0.4; cursor: default; box-shadow: none; }
+        
+        /* Герой */
+        .hero-avatar { font-size: 110px; text-align: center; margin: 20px 0; filter: drop-shadow(0 0 40px var(--accent)); animation: mobFloat 4s ease-in-out infinite; }
+        
+        /* Лидерборд */
+        .lb-item { 
+            background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 8px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid rgba(255,255,255,0.03);
+            position: relative; z-index: 1;
+        }
+        .lb-item.me { background: linear-gradient(135deg, rgba(74,134,255,0.2), rgba(139,92,246,0.2)); border-color: var(--accent); }
+        
+        /* Статистика */
+        .stats-box { background: var(--card); border-radius: 16px; padding: 20px; margin-top: 16px; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
+        .stats-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+        .stats-row b { color: var(--accent); font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="bg-particles"></div>
+
+    <div class="header">
+        <div>
+            <div class="title">👆 Кликер</div>
+            <div class="subtitle" id="user-name">Загрузка…</div>
+        </div>
+    </div>
+
+    <div id="tab-game" class="tab-content" style="position: relative; z-index: 1;">
+        <div class="mob-card" id="mob-card">
+            <div class="hero-row">
+                <div class="hero-mini" id="battle-skin">👤</div>
+                <div class="hero-title-label" id="battle-title"></div>
+            </div>
+            <div class="progress-to-boss"><div class="progress-to-boss-fill" id="boss-progress" style="width:0%"></div></div>
+            <div class="location-name" id="location-name">🌲 Лес</div>
+            <div class="boss-label" id="boss-label"></div>
+            
+            <div class="click-area" onclick="hitMob(event)">
+                <div class="mob-emoji" id="mob-emoji">👹</div>
+            </div>
+            
+            <div class="mob-hp-bar"><div class="mob-hp-fill" id="mob-hp-fill" style="width:100%"></div></div>
+            <div class="mob-info" id="mob-info">HP: 100 / 100</div>
+            
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <div class="stat-value" id="clicker-xp">0</div>
+                    <div class="stat-label">XP</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="clicker-power">1</div>
+                    <div class="stat-label">Урон</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-shop" class="tab-content" style="display:none; position: relative; z-index: 1;">
+        <h3 style="margin-bottom: 12px;">🏪 Предметы (Урон)</h3>
+        <div id="clicker-shop"></div>
+    </div>
+
+    <div id="tab-hero" class="tab-content" style="display:none; position: relative; z-index: 1;">
+        <div class="hero-avatar" id="hero-avatar">👤</div>
+        <div style="text-align:center; font-weight: 800; color: var(--accent); margin-bottom: 20px; font-size: 18px; text-shadow: 0 0 15px var(--accent);" id="hero-title"></div>
+        
+        <h3 style="margin-bottom: 10px;">👕 Скины</h3>
+        <div id="skins-list"></div>
+
+        <h3 style="margin: 16px 0 10px;">🖼 Фоны</h3>
+        <div id="backgrounds-list"></div>
+
+        <h3 style="margin: 16px 0 10px;">🏷 Титулы</h3>
+        <div id="titles-list"></div>
+    </div>
+
+    <div id="tab-stats" class="tab-content" style="display:none; position: relative; z-index: 1;">
+        <h3 style="margin-bottom: 12px;">📊 Статистика</h3>
+        <div class="stats-box">
+            <div class="stats-row"><span>Убито мобов:</span> <b id="stat-mobs">0</b></div>
+            <div class="stats-row"><span>Критов (x10):</span> <b id="stat-crits">0</b></div>
+            <div class="stats-row"><span>ДПС (в секунду):</span> <b id="stat-dps">0</b></div>
+            <div class="stats-row"><span>Всего XP:</span> <b id="stat-xp">0</b></div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('game', this)">⚔️ Бой</div>
+        <div class="tab" onclick="switchTab('shop', this)">🏪 Магазин</div>
+        <div class="tab" onclick="switchTab('hero', this)">👤 Герой</div>
+        <div class="tab" onclick="switchTab('stats', this)">📊 Статы</div>
+    </div>
+
+    <h3 style="margin: 20px 0 10px;">🏆 Топ-10 недели</h3>
+    <div id="leaderboard-list"><p style="text-align:center; opacity:0.7;">Загрузка...</p></div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        const API_URL = 'https://manliness-extent-absolute.ngrok-free.dev';
+        
+        let user = null;
+        let MY_ID = null;
+
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+            user = tg.initDataUnsafe.user;
+            MY_ID = user.id;
+        } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlId = urlParams.get('id');
+            if (urlId) {
+                MY_ID = parseInt(urlId);
+                user = { id: MY_ID, first_name: 'Игрок' };
+            }
+        }
+
+        if (!MY_ID) {
+            setTimeout(() => {
+                if (!MY_ID) {
+                    document.body.innerHTML = '<div style="text-align:center; padding: 50px; font-size: 20px;">⚠️ Ошибка: откройте игру через кнопку в боте!</div>';
+                }
+            }, 3000);
+        } else {
+            document.getElementById('user-name').textContent = user.first_name || 'Игрок';
+        }
+
+        const locations = [
+            { name: "🌲 Лес", emoji: "👹", color: "#1a1a2e" },
+            { name: "🏔 Горы", emoji: "🐻", color: "#2c2c3a" },
+            { name: "🏰 Замок", emoji: "🧟", color: "#151515" },
+            { name: "🔥 Вулкан", emoji: "🐉", color: "#2e1515" },
+            { name: "🌌 Космос", emoji: "👽", color: "#0f172a" },
+            { name: "❄️ Ледники", emoji: "🐧", color: "#152e2e" },
+        ];
+
+        let state = {
+            xp: 0, total_power: 1, items: [], 
+            active_skin: "skin_default", active_bg: "bg_default", active_title: "title_noob",
+            daily: 0, max_daily: 1000,
+            mobLevel: 1, mobsKilled: 0, mobsPerLocation: 20,
+            currentMobHp: 100, maxMobHp: 100, isBoss: false,
+            crits: 0, totalMobs: 0
+        };
+        
+        let cosmetics = [];
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+        function playSound(freq, dur, type) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type || 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + dur);
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-content').forEach(x => x.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+            document.getElementById('tab-' + tab).style.display = 'block';
+            el.classList.add('active');
+        }
+
+        function getMobHp(level, isBoss) {
+            let base = 100 + (level - 1) * 80;
+            if (isBoss) base *= 5;
+            return base;
+        }
+
+        async function loadStatus() {
+            if (!MY_ID) return;
+            try {
+                const r = await fetch(API_URL + '/api/clicker/status/' + MY_ID, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const data = await r.json();
+                if (data.ok) {
+                    state.xp = data.xp;
+                    state.total_power = data.total_power;
+                    state.items = data.items;
+                    state.active_skin = data.active_skin || "skin_default";
+                    state.active_bg = data.active_bg || "bg_default";
+                    state.active_title = data.active_title || "title_noob";
+                    
+                    if (state.currentMobHp <= 0 || state.currentMobHp === 100) spawnMob();
+                    else render();
+                }
+            } catch (e) { console.error(e); }
+            loadCosmetics();
+        }
+
+        async function loadCosmetics() {
+            if (!MY_ID) return;
+            try {
+                const r = await fetch(API_URL + '/api/clicker/cosmetics/' + MY_ID, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                cosmetics = await r.json();
+                renderCosmetics();
+                updateHeroVisuals();
+            } catch (e) { console.error(e); }
+        }
+
+        function updateHeroVisuals() {
+            const skin = cosmetics.find(c => c.key === state.active_skin);
+            const title = cosmetics.find(c => c.key === state.active_title);
+
+            if (skin) {
+                document.getElementById('hero-avatar').textContent = skin.emoji;
+                document.getElementById('battle-skin').textContent = skin.emoji;
+            }
+            if (title) {
+                document.getElementById('hero-title').textContent = title.emoji + ' ' + title.name;
+                document.getElementById('battle-title').textContent = title.name;
+            }
+        }
+
+        function spawnMob() {
+            state.isBoss = (state.mobsKilled > 0 && state.mobsKilled % 10 === 0);
+            state.maxMobHp = getMobHp(state.mobLevel, state.isBoss);
+            state.currentMobHp = state.maxMobHp;
+            render();
+        }
+
+        function render() {
+            const loc = locations[(state.mobLevel - 1) % locations.length];
+            const card = document.getElementById('mob-card');
+            
+            let bgColor = loc.color;
+            if (state.active_bg !== 'bg_default' && state.active_bg) {
+                const bgColors = {
+                    "bg_forest": "#1b2e1b", "bg_city": "#2a2a30", "bg_space": "#0a0a20",
+                    "bg_volcano": "#2e1515", "bg_ice": "#15202e", "bg_hell": "#2e0a0a"
+                };
+                bgColor = bgColors[state.active_bg] || loc.color;
+            }
+            card.style.boxShadow = `0 0 40px ${bgColor}, 0 10px 40px rgba(0,0,0,0.6)`;
+            document.body.style.background = `radial-gradient(circle at top, ${bgColor} 0%, var(--bg) 100%)`;
+
+            document.getElementById('location-name').textContent = loc.name + " · Уровень " + state.mobLevel;
+            document.getElementById('mob-emoji').textContent = state.isBoss ? '👺' : loc.emoji;
+            document.getElementById('mob-emoji').className = 'mob-emoji' + (state.isBoss ? ' boss' : '');
+            document.getElementById('boss-label').textContent = state.isBoss ? '⚠️ БОСС ⚠️' : '';
+            
+            let untilBoss = 10 - (state.mobsKilled % 10);
+            if (untilBoss === 10) untilBoss = 0;
+            document.getElementById('boss-progress').style.width = ((state.mobsKilled % 10) / 10 * 100) + '%';
+            
+            if (state.isBoss) card.classList.add('boss-active');
+            else card.classList.remove('boss-active');
+            
+            document.getElementById('clicker-xp').textContent = formatNumber(state.xp);
+            document.getElementById('clicker-power').textContent = formatNumber(state.total_power);
+            
+            const hpPercent = Math.max(0, (state.currentMobHp / state.maxMobHp) * 100);
+            document.getElementById('mob-hp-fill').style.width = hpPercent + '%';
+            document.getElementById('mob-info').textContent = 'HP: ' + Math.max(0, Math.round(state.currentMobHp)) + ' / ' + Math.round(state.maxMobHp);
+            
+            document.getElementById('stat-mobs').textContent = state.totalMobs;
+            document.getElementById('stat-crits').textContent = state.crits;
+            document.getElementById('stat-dps').textContent = state.total_power;
+            document.getElementById('stat-xp').textContent = formatNumber(state.xp);
+
+            const shop = document.getElementById('clicker-shop');
+            shop.innerHTML = '';
+            state.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                const canBuy = state.xp >= item.cost;
+                div.innerHTML = `
+                    <div style="font-size: 36px;">${item.emoji}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 15px;">${item.name} ${item.count > 0 ? `<span style="color:#2ecc71; font-size:13px;">×${item.count}</span>` : ''}</div>
+                        <div style="font-size: 12px; opacity: 0.6; margin-top: 2px;">${item.description}</div>
+                    </div>
+                    <button class="btn-buy" onclick="buyItem('${item.key}')" ${canBuy ? '' : 'disabled'}>
+                        ${formatNumber(item.cost)}
+                    </button>
+                `;
+                shop.appendChild(div);
+            });
+            
+            updateHeroVisuals();
+        }
+
+        function renderCosmetics() {
+            const types = ['skin', 'background', 'title'];
+            types.forEach(type => {
+                const list = document.getElementById(type + 's-list');
+                if (!list) return;
+                list.innerHTML = '';
+                
+                cosmetics.filter(c => c.type === type).forEach(item => {
+                    const div = document.createElement('div');
+                    const isActive = (type === 'skin' && item.key === state.active_skin) ||
+                                     (type === 'background' && item.key === state.active_bg) ||
+                                     (type === 'title' && item.key === state.active_title);
+                    
+                    div.className = 'skin-item' + (isActive ? ' active' : '');
+                    
+                    let btnHtml = '';
+                    if (isActive) {
+                        btnHtml = '<span style="color:var(--accent); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:1px;">Надето</span>';
+                    } else if (item.owned) {
+                        btnHtml = `<button class="btn-buy" onclick="equipCosmetic('${item.key}', '${item.type}')">Надеть</button>`;
+                    } else {
+                        const canBuy = state.xp >= item.cost;
+                        btnHtml = `<button class="btn-buy" onclick="buyCosmetic('${item.key}')" ${canBuy ? '' : 'disabled'}>${formatNumber(item.cost)}</button>`;
+                    }
+                    
+                    div.innerHTML = `
+                        <div style="font-size: 30px; width: 36px; text-align: center;">${item.emoji}</div>
+                        <div style="flex: 1; font-size: 14px; font-weight: 600;">${item.name}</div>
+                        ${btnHtml}
+                    `;
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        function spawnCritParticles(x, y) {
+            const card = document.getElementById('mob-card');
+            for (let i = 0; i < 12; i++) {
+                const p = document.createElement('div');
+                p.className = 'crit-particle';
+                const angle = (Math.PI * 2 * i) / 12;
+                const dist = 40 + Math.random() * 40;
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+                p.style.animation = 'particleFly 0.6s ease-out forwards';
+                card.appendChild(p);
+                setTimeout(() => p.remove(), 600);
+            }
+        }
+
+        async function hitMob(event) {
+            if (state.currentMobHp <= 0) return;
+            
+            let damage = state.total_power;
+            let isCrit = false;
+            if (Math.random() < 0.15) { damage *= 10; isCrit = true; state.crits++; }
+            
+            state.currentMobHp -= damage;
+            state.totalMobs++;
+            
+            if (event) {
+                const rect = document.getElementById('mob-card').getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                
+                const float = document.createElement('div');
+                float.className = 'floating-text' + (isCrit ? ' crit-text' : '');
+                float.style.left = x + 'px';
+                float.style.top = y + 'px';
+                float.textContent = isCrit ? '💥 ' + formatNumber(damage) : formatNumber(damage);
+                document.getElementById('mob-card').appendChild(float);
+                setTimeout(() => float.remove(), 900);
+                
+                if (isCrit) spawnCritParticles(x, y);
+            }
+            
+            playSound(isCrit ? 800 : 400, 0.05, 'square');
+            
+            const card = document.getElementById('mob-card');
+            const emoji = document.getElementById('mob-emoji');
+            emoji.style.transform = 'scale(0.85)';
+            setTimeout(() => { emoji.style.transform = 'scale(1)'; }, 100);
+            
+            if (isCrit) {
+                card.classList.add('crit-shake');
+                setTimeout(() => card.classList.remove('crit-shake'), 300);
+                playSound(1200, 0.1, 'sawtooth');
+            }
+            
+            if (state.currentMobHp <= 0) {
+                state.currentMobHp = 0; render();
+                try {
+                    const r = await fetch(API_URL + '/api/clicker/kill_mob', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                        body: JSON.stringify({ user_id: MY_ID, mob_level: state.mobLevel, is_boss: state.isBoss })
+                    });
+                    const data = await r.json();
+                    if (data.ok) {
+                        state.xp = data.xp;
+                        if (data.promo) tg.showAlert('🎁 Ты выбил промокод: ' + data.promo + ' (скидка 5%)!');
+                        state.mobsKilled++;
+                        playSound(200, 0.2, 'triangle');
+                        if (state.mobsKilled > 0 && state.mobsKilled % state.mobsPerLocation === 0) {
+                            state.mobLevel++;
+                            tg.showAlert('🌟 Переход на локацию ' + state.mobLevel + '!');
+                        }
+                        spawnMob();
+                    }
+                } catch (e) { console.error(e); }
+            } else {
+                render();
+            }
+        }
+
+        async function buyItem(key) {
+            try {
+                const r = await fetch(API_URL + '/api/clicker/buy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ user_id: MY_ID, item_key: key })
+                });
+                const data = await r.json();
+                if (data.ok) { state.xp = data.xp; tg.showAlert('✅ Куплено: ' + data.item); playSound(600, 0.1, 'sine'); loadStatus(); }
+                else tg.showAlert(data.message || 'Ошибка');
+            } catch (e) { tg.showAlert('Ошибка сети'); }
+        }
+
+        async function buyCosmetic(key) {
+            try {
+                const r = await fetch(API_URL + '/api/clicker/cosmetics/buy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ user_id: MY_ID, item_type: 'none', item_key: key })
+                });
+                const data = await r.json();
+                if (data.ok) { state.xp = data.xp; tg.showAlert('✅ Куплено!'); playSound(600, 0.1, 'sine'); loadStatus(); }
+                else tg.showAlert(data.message || 'Ошибка');
+            } catch (e) { tg.showAlert('Ошибка сети'); }
+        }
+
+        async function equipCosmetic(key, type) {
+            try {
+                const r = await fetch(API_URL + '/api/clicker/cosmetics/equip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ user_id: MY_ID, item_type: type, item_key: key })
+                });
+                const data = await r.json();
+                if (data.ok) { 
+                    if (type === 'skin') state.active_skin = key;
+                    if (type === 'background') state.active_bg = key;
+                    if (type === 'title') state.active_title = key;
+                    loadStatus(); 
+                }
+                else tg.showAlert(data.message || 'Ошибка');
+            } catch (e) { tg.showAlert('Ошибка сети'); }
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const r = await fetch(API_URL + '/api/clicker/leaderboard', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const rows = await r.json();
+                const box = document.getElementById('leaderboard-list');
+                if (rows.length === 0) { box.innerHTML = '<p style="text-align:center; opacity:0.7;">Пока никто не играл. Будь первым!</p>'; return; }
+                let html = '';
+                rows.forEach((row, i) => {
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+                    const isMe = row.user_id === MY_ID;
+                    html += `
+                        <div class="lb-item ${isMe ? 'me' : ''}">
+                            <div style="font-weight: 700;">${medal} ${row.public_id} ${isMe ? ' (ты)' : ''}</div>
+                            <div style="font-weight: 800; color: var(--accent);">${formatNumber(row.score)} XP</div>
+                        </div>
+                    `;
+                });
+                box.innerHTML = html;
+            } catch (e) { document.getElementById('leaderboard-list').innerHTML = '<p style="color:red; text-align:center;">Ошибка загрузки</p>'; }
+        }
+
+        async function handleAutoClick() {
+            if (!MY_ID || document.hidden) return;
+            try {
+                await fetch(API_URL + '/api/clicker/auto_damage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ user_id: MY_ID, seconds: 2 })
+                });
+            } catch (e) {}
+        }
+
+        initAudio();
+        if (MY_ID) {
+            loadStatus();
+            loadLeaderboard();
+            setInterval(handleAutoClick, 2000);
+        }
+    </script>
+</body>
+</html>

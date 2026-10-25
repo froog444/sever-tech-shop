@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sever Tech Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --bg: #0f0f17; --card: #1a1a2e; --accent: #4a86ff; --text: #e8e8f0; --danger: #ff4a4a; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; padding-bottom: 80px; }
+        
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .title { font-size: 20px; font-weight: 700; }
+        .subtitle { font-size: 13px; opacity: 0.6; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); z-index: 50; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 12px; opacity: 0.5; cursor: pointer; color: white; text-decoration: none; }
+        .nav-item.active { opacity: 1; color: var(--accent); }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+
+        .category-list { display: flex; flex-direction: column; gap: 12px; }
+        .category-item { background: var(--card); border-radius: 16px; padding: 20px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .category-item:active { background: #252545; }
+        .back-btn { background: none; border: none; color: var(--accent); font-size: 16px; cursor: pointer; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: var(--card); border-radius: 16px; padding: 16px; text-align: center; position: relative; }
+        .card .emoji { font-size: 32px; margin-bottom: 8px; height: 80px; display: flex; align-items: center; justify-content: center; }
+        .card img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+        .card .label { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .card .price { font-size: 13px; opacity: 0.8; margin-bottom: 8px; }
+        .btn-add { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer; width: 100%; }
+
+        .profile-card { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center; }
+        .profile-card h2 { margin-bottom: 8px; }
+        .profile-card p { opacity: 0.7; font-size: 14px; }
+        .menu-btn { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; font-weight: 600; cursor: pointer; border: none; width: 100%; text-align: left; color: white; font-size: 16px;}
+        .menu-btn:active { background: #252545; }
+        .order-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+        .order-item .total { font-weight: 700; color: var(--accent); }
+        .order-item .status { font-size: 12px; opacity: 0.7; }
+
+        .chat-container { display: flex; flex-direction: column; height: calc(100vh - 160px); }
+        .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 16px; }
+        .msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
+        .msg.client { background: var(--accent); align-self: flex-end; color: white; border-bottom-right-radius: 4px; }
+        .msg.courier { background: #33334d; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .msg-time { font-size: 10px; opacity: 0.7; margin-top: 4px; display: block; }
+        .chat-input-row { display: flex; gap: 8px; margin-top: 8px; }
+        .chat-input-row input { flex: 1; padding: 10px; border-radius: 20px; border: none; background: #252545; color: white; }
+        .chat-input-row button { background: var(--accent); border: none; border-radius: 50%; width: 44px; height: 44px; color: white; font-size: 18px; cursor: pointer; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; align-items: flex-end; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card); width: 100%; border-radius: 20px 20px 0 0; padding: 20px; max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .close-btn { background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .cart-total { font-size: 18px; font-weight: 700; text-align: right; margin: 16px 0; }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
+        .input-group input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: var(--text); font-size: 14px; }
+        .btn-submit { background: var(--accent); color: white; border: none; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600; width: 100%; cursor: pointer; margin-top: 8px; }
+        
+        .slots-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+        .slot-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; color: white; font-size: 14px; cursor: pointer; text-align: left; }
+        .slot-btn.selected { background: var(--accent); border-color: var(--accent); }
+        .geo-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; color: white; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; }
+        .geo-btn.ok { background: #2ecc71; border-color: #2ecc71; }
+        .skip-btn { background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; margin-top: 8px; text-decoration: underline; }
+
+        .stars { display: flex; gap: 8px; font-size: 32px; cursor: pointer; margin: 16px 0; }
+        .star { opacity: 0.3; transition: opacity 0.2s; }
+        .star.active { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div id="screen-catalog">
+        <div class="header">
+            <div class="header-left">
+                <div class="avatar">🎧</div>
+                <div>
+                    <div class="title">Sever Tech Shop</div>
+                    <div class="subtitle" id="user-name">Загрузка…</div>
+                </div>
+            </div>
+        </div>
+        <div class="category-list" id="category-list"></div>
+    </div>
+
+    <div id="screen-products" style="display: none;">
+        <button class="back-btn" onclick="showCatalog()">← Назад</button>
+        <div class="grid" id="product-grid"></div>
+    </div>
+
+    <div id="screen-profile" style="display: none;">
+        <div class="profile-card">
+            <h2 id="profile-name">Загрузка...</h2>
+            <p>Добро пожаловать в Sever Tech Shop!</p>
+        </div>
+        <button class="menu-btn" onclick="loadMyOrders()">📦 Мои заказы</button>
+        <div id="my-orders-list"></div>
+        <button class="menu-btn" onclick="openChat('support', 'Поддержка')">💬 Поддержка</button>
+        <button class="menu-btn" onclick="showPromos()">🎁 Акции</button>
+        <button class="menu-btn" onclick="showReferral()">🔗 Пригласить друга</button>
+        <button class="menu-btn" onclick="tg.showAlert('FAQ скоро появится')">❓ FAQ</button>
+    </div>
+
+    <div id="screen-chat" style="display: none;">
+        <button class="back-btn" onclick="backToProfile()">← Назад</button>
+        <h2 id="chat-title" style="margin-bottom: 16px;">Чат</h2>
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input-row">
+                <input type="text" id="chat-input" placeholder="Сообщение...">
+                <button onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav" id="main-nav">
+        <div class="nav-item active" onclick="showCatalog()" id="nav-cat"><span class="nav-icon">🛍</span>Каталог</div>
+        <div class="nav-item" onclick="openCart()" id="nav-cart"><span class="nav-icon">🛒</span>Корзина <span id="cart-count" style="background:var(--danger); color:white; border-radius:50%; padding:0 4px; font-size:10px;">0</span></div>
+        <div class="nav-item" onclick="showProfile()" id="nav-prof"><span class="nav-icon">👤</span>Профиль</div>
+    </div>
+
+    <div class="modal" id="cart-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Оформление</h2>
+                <button class="close-btn" onclick="closeCart()">×</button>
+            </div>
+            <div id="cart-items"></div>
+            <div class="cart-total" id="cart-total">Итого: 0 ₽</div>
+            
+            <div class="input-group"><label>Имя</label><input type="text" id="order-name" placeholder="Иван"></div>
+            <div class="input-group"><label>Телефон</label><input type="tel" id="order-phone" placeholder="+7 999 123-45-67"></div>
+            <div class="input-group"><label>Адрес</label><input type="text" id="order-address" placeholder="Город, улица, дом"></div>
+            <div class="input-group"><label>Промокод (если есть)</label><input type="text" id="order-promo" placeholder="Введите код"></div>
+            
+            <label style="font-size:12px; opacity:0.7; margin-bottom:4px; display:block;">Геопозиция (необязательно)</label>
+            <button class="geo-btn" id="geo-btn" onclick="requestGeo()">📍 Отправить геопозицию</button>
+            <button class="skip-btn" onclick="skipGeo()">Пропустить (курьер найдёт по адресу)</button>
+            
+            <label style="font-size:12px; opacity:0.7; margin:12px 0 4px; display:block;">Слот доставки</label>
+            <div class="slots-list" id="slots-list"></div>
+            
+            <button class="btn-submit" onclick="submitOrder()">Оформить заказ</button>
+        </div>
+    </div>
+
+    <div class="modal" id="review-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Оставить отзыв</h2>
+                <button class="close-btn" onclick="closeReviewModal()">×</button>
+            </div>
+            <div class="stars" id="stars">
+                <span class="star" onclick="setRating(1)">⭐</span>
+                <span class="star" onclick="setRating(2)">⭐</span>
+                <span class="star" onclick="setRating(3)">⭐</span>
+                <span class="star" onclick="setRating(4)">⭐</span>
+                <span class="star" onclick="setRating(5)">⭐</span>
+            </div>
+            <div class="input-group">
+                <label>Комментарий</label>
+                <input type="text" id="review-text" placeholder="Что понравилось или не понравилось?">
+            </div>
+            <button class="btn-submit" onclick="submitReview()">Отправить отзыв</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            const name = (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
+            document.getElementById('user-name').textContent = name;
+            document.getElementById('profile-name').textContent = name;
+        } else {
+            document.getElementById('user-name').textContent = 'Гость';
+            document.getElementById('profile-name').textContent = 'Гость';
+        }
+
+        const API_URL = 'https://manliness-extent-absolute.ngrok-free.dev';
+        let cart = [];
+        let currentChatType = null;
+        let chatInterval = null;
+        let currentGeo = { lat: 0, lon: 0 };
+        let selectedSlot = null;
+        let currentRating = 0;
+        let currentReviewOrderId = null;
+        let skipGeoFlag = false;
+
+        function switchScreen(screenId) {
+            document.getElementById('screen-catalog').style.display = 'none';
+            document.getElementById('screen-products').style.display = 'none';
+            document.getElementById('screen-profile').style.display = 'none';
+            document.getElementById('screen-chat').style.display = 'none';
+            
+            document.getElementById(screenId).style.display = 'block';
+            document.getElementById('main-nav').style.display = (screenId === 'screen-chat') ? 'none' : 'flex';
+            
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (screenId === 'screen-catalog' || screenId === 'screen-products') document.getElementById('nav-cat').classList.add('active');
+            if (screenId === 'screen-profile') document.getElementById('nav-prof').classList.add('active');
+        }
+
+        function showCatalog() { switchScreen('screen-catalog'); if (document.getElementById('category-list').innerHTML === '') loadCategories(); }
+        function showProfile() { switchScreen('screen-profile'); document.getElementById('my-orders-list').innerHTML = ''; loadProfile(); }
+        function backToProfile() { if(chatInterval) clearInterval(chatInterval); showProfile(); }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch(API_URL + '/api/profile/' + (user?.id || 0), { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const p = await response.json();
+                if (p.name) document.getElementById('order-name').value = p.name;
+                if (p.phone) document.getElementById('order-phone').value = p.phone;
+                if (p.address) document.getElementById('order-address').value = p.address;
+            } catch (e) { console.error('profile:', e); }
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const categories = await response.json();
+                const list = document.getElementById('category-list'); list.innerHTML = ''; 
+                if (categories.length === 0) { list.innerHTML = '<p style="text-align: center;">Категорий нет</p>'; return; }
+                categories.forEach(c => {
+                    const item = document.createElement('div'); item.className = 'category-item';
+                    item.innerHTML = `<span>${c.name}</span><span>→</span>`;
+                    item.onclick = () => loadProductsByCategory(c.name); list.appendChild(item);
+                });
+            } catch (error) { document.getElementById('category-list').innerHTML = `<p style="text-align: center; color: red;">Ошибка сети</p>`; }
+        }
+
+        async function loadProductsByCategory(categoryName) {
+            switchScreen('screen-products');
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '<p style="grid-column: span 2; text-align: center;">Загрузка...</p>';
+            try {
+                const response = await fetch(API_URL + '/api/products/' + encodeURIComponent(categoryName), { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const products = await response.json(); grid.innerHTML = ''; 
+                if (products.length === 0) { grid.innerHTML = '<p style="grid-column: span 2; text-align: center;">Нет товаров</p>'; return; }
+                products.forEach(p => {
+                    const card = document.createElement('div'); card.className = 'card';
+                    card.innerHTML = `
+                        <div class="emoji">${p.image_url ? `<img src="${p.image_url}">` : '📦'}</div>
+                        <div class="label">${p.name}</div>
+                        <div class="price">${p.price} ₽</div>
+                        <button class="btn-add" onclick="addToCart(${p.id}, '${p.name}', ${p.price})">В корзину</button>
+                    `; grid.appendChild(card);
+                });
+            } catch (error) { grid.innerHTML = `<p style="grid-column: span 2; text-align: center; color: red;">Ошибка загрузки</p>`; }
+        }
+
+        async function loadMyOrders() {
+            const list = document.getElementById('my-orders-list'); list.innerHTML = '<p style="text-align: center;">Загрузка...</p>';
+            try {
+                const response = await fetch(API_URL + '/api/my_orders/' + (user?.id || 0), { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const orders = await response.json(); list.innerHTML = ''; 
+                if (orders.length === 0) { list.innerHTML = '<p style="text-align: center; opacity: 0.6;">У вас пока нет заказов</p>'; return; }
+                
+                const statuses = {"new": "🆕 Новый", "accepted": "📦 Принят", "picked": "🚗 Забран", "enroute": "🚚 В пути", "delivered": "✅ Доставлен", "cancelled": "❌ Отменен"};
+                
+                orders.forEach(o => {
+                    const chatBtn = (o.status === 'accepted' || o.status === 'picked' || o.status === 'enroute') 
+                        ? `<button class="btn-add" style="margin-top:8px" onclick="openChat(${o.id}, 'Курьер (Заказ #${o.id})')">💬 Чат с курьером</button>` : '';
+                    
+                    const reviewBtn = (o.status === 'delivered') 
+                        ? `<button class="btn-add" style="margin-top:8px; background: #2ecc71;" onclick="openReviewModal(${o.id})">⭐ Оставить отзыв</button>` : '';
+                    
+                    list.innerHTML += `
+                        <div class="order-item">
+                            <div class="status"><b>${o.order_number || '#'+o.id}</b> · ${statuses[o.status] || o.status} · ${o.created_at.slice(0, 16).replace('T', ' ')}</div>
+                            <div class="total">${o.total} ₽</div>
+                            <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">${o.address}</div>
+                            ${chatBtn}
+                            ${reviewBtn}
+                        </div>
+                    `;
+                });
+            } catch (error) { list.innerHTML = `<p style="text-align: center; color: red;">Ошибка загрузки</p>`; }
+        }
+
+        function openChat(chatId, title) {
+            currentChatType = chatId;
+            document.getElementById('chat-title').textContent = title;
+            document.getElementById('chat-messages').innerHTML = '<p style="text-align:center; opacity:0.5;">Загрузка...</p>';
+            switchScreen('screen-chat');
+            
+            loadMessages();
+            if(chatInterval) clearInterval(chatInterval);
+            chatInterval = setInterval(loadMessages, 3000);
+        }
+
+        async function loadMessages() {
+            if (!currentChatType) return;
+            try {
+                let url;
+                if (currentChatType === 'support') {
+                    url = API_URL + '/api/support_messages/' + (user?.id || 0);
+                } else {
+                    url = API_URL + '/api/messages/' + currentChatType;
+                }
+                const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const messages = await response.json();
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = ''; 
+                
+                if (messages.length === 0) { box.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:20px;">История пуста. Напишите первым!</p>'; return; }
+                
+                messages.forEach(m => {
+                    const isMe = m.sender_id === (user?.id || 0);
+                    const cls = isMe ? 'client' : 'courier';
+                    const time = m.created_at.slice(11, 16);
+                    box.innerHTML += `<div class="msg ${cls}">${m.text}<span class="msg-time">${time}</span></div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            } catch (error) { console.error(error); }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text || !currentChatType) return;
+            
+            input.value = ''; 
+            try {
+                if (currentChatType === 'support') {
+                    await fetch(API_URL + '/api/send_support', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                        body: JSON.stringify({ order_id: 0, sender_id: user?.id || 0, text: text, role: 'client' })
+                    });
+                } else {
+                    await fetch(API_URL + '/api/send_message', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                        body: JSON.stringify({ order_id: currentChatType, sender_id: user?.id || 0, text: text, role: 'client' })
+                    });
+                }
+                loadMessages();
+            } catch (error) { tg.showAlert('Ошибка отправки'); }
+        }
+
+        async function showPromos() {
+            try {
+                const response = await fetch(API_URL + '/api/promotions', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const promos = await response.json();
+                if (promos.length === 0) { tg.showAlert('Акций пока нет'); return; }
+                let text = '🎁 Акции:\n\n';
+                promos.forEach(p => { text += `• ${p.title}\n${p.description}\n\n`; });
+                tg.showAlert(text);
+            } catch (e) { tg.showAlert('Ошибка загрузки акций'); }
+        }
+
+        function showReferral() {
+            const code = user?.id ? `ref_${user.id}` : 'ref_0';
+            const link = `https://t.me/SeTeSh_bot?start=${code}`;
+            tg.showAlert(`Пригласи друга и получи 100 XP!\n\nТвоя ссылка:\n${link}`);
+        }
+
+        function openReviewModal(orderId) {
+            currentReviewOrderId = orderId;
+            currentRating = 0;
+            document.getElementById('review-text').value = '';
+            document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+            document.getElementById('review-modal').classList.add('active');
+        }
+
+        function closeReviewModal() {
+            document.getElementById('review-modal').classList.remove('active');
+        }
+
+        function setRating(rating) {
+            currentRating = rating;
+            document.querySelectorAll('.star').forEach((s, i) => {
+                if (i < rating) s.classList.add('active');
+                else s.classList.remove('active');
+            });
+        }
+
+        async function submitReview() {
+            if (currentRating === 0) { tg.showAlert('Выберите оценку'); return; }
+            const text = document.getElementById('review-text').value.trim();
+            
+            try {
+                await fetch(API_URL + '/api/review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ 
+                        order_id: currentReviewOrderId, 
+                        user_id: user?.id || 0, 
+                        rating: currentRating, 
+                        text: text || "Без комментария"
+                    })
+                });
+                tg.showAlert('Спасибо за отзыв!');
+                closeReviewModal();
+            } catch (error) { tg.showAlert('Ошибка отправки'); }
+        }
+
+        function addToCart(id, name, price) {
+            const existing = cart.find(item => item.product_id === id);
+            if (existing) existing.quantity++;
+            else cart.push({ product_id: id, name: name, price: price, quantity: 1 });
+            updateCartUI(); tg.showAlert('Добавлено в корзину');
+        }
+
+        function updateCartUI() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+            const itemsDiv = document.getElementById('cart-items'); itemsDiv.innerHTML = '';
+            let total = 0;
+            cart.forEach((item, index) => {
+                total += item.price * item.quantity;
+                itemsDiv.innerHTML += `
+                    <div class="cart-item">
+                        <div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">${item.quantity} × ${item.price} ₽</div></div>
+                        <button class="close-btn" onclick="removeFromCart(${index})">×</button>
+                    </div>`;
+            });
+            document.getElementById('cart-total').textContent = `Итого: ${total} ₽`;
+        }
+
+        function removeFromCart(index) { cart.splice(index, 1); updateCartUI(); }
+        function openCart() { if (cart.length === 0) { tg.showAlert('Корзина пуста'); return; } document.getElementById('cart-modal').classList.add('active'); loadSlots(); loadProfile(); }
+        function closeCart() { document.getElementById('cart-modal').classList.remove('active'); }
+
+        async function loadSlots() {
+            const list = document.getElementById('slots-list');
+            list.innerHTML = 'Загрузка...';
+            try {
+                const response = await fetch(API_URL + '/api/slots', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const slots = await response.json();
+                list.innerHTML = '';
+                slots.forEach(s => {
+                    const btn = document.createElement('button');
+                    btn.className = 'slot-btn';
+                    btn.textContent = s.label;
+                    btn.onclick = () => {
+                        document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        selectedSlot = s;
+                    };
+                    list.appendChild(btn);
+                });
+            } catch (error) { list.innerHTML = '<p style="color:red;">Ошибка загрузки слотов</p>'; }
+        }
+
+        function requestGeo() {
+            if (!tg.LocationManager) {
+                tg.showAlert('Геолокация не поддерживается. Нажмите "Пропустить".');
+                return;
+            }
+            tg.LocationManager.init(() => {
+                tg.LocationManager.getLocation((locationData) => {
+                    if (locationData && locationData.latitude) {
+                        currentGeo = { lat: locationData.latitude, lon: locationData.longitude };
+                        const btn = document.getElementById('geo-btn');
+                        btn.textContent = '✅ Геопозиция получена';
+                        btn.classList.add('ok');
+                        skipGeoFlag = false;
+                    } else {
+                        tg.showAlert('Не удалось получить гео. Нажмите "Пропустить".');
+                    }
+                });
+            });
+        }
+
+        function skipGeo() {
+            currentGeo = { lat: 0, lon: 0 };
+            skipGeoFlag = true;
+            document.getElementById('geo-btn').textContent = '⏭ Геопозиция пропущена';
+            document.getElementById('geo-btn').classList.add('ok');
+        }
+
+        function showReceipt(order) {
+            const now = new Date(order.created_at || new Date());
+            const dateStr = now.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            
+            let itemsHtml = '';
+            (order.items || []).forEach(it => {
+                itemsHtml += `
+                    <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed rgba(0,0,0,0.1);">
+                        <span style="flex:1;">${it.name} × ${it.quantity}</span>
+                        <span style="font-weight:600;">${it.sum.toFixed(0)} ₽</span>
+                    </div>
+                `;
+            });
+
+            const receiptHtml = `
+                <div style="background:#fff; color:#000; border-radius:16px; padding:20px; font-family:'Courier New',monospace; position:relative;">
+                    <div style="text-align:center; margin-bottom:12px;">
+                        <div style="font-size:20px; font-weight:700;">🧾 ЧЕК</div>
+                        <div style="font-size:12px; opacity:0.7;">Sever Tech Shop</div>
+                    </div>
+                    <div style="border-top:2px solid #000; border-bottom:2px solid #000; padding:8px 0; margin-bottom:12px; font-size:13px;">
+                        <div><b>Заказ:</b> ${order.order_number}</div>
+                        <div><b>Дата:</b> ${dateStr}</div>
+                        <div><b>Клиент:</b> ${order.public_id}</div>
+                        <div><b>Тел:</b> ${order.phone_masked}</div>
+                        <div><b>Адрес:</b> ${order.address}</div>
+                        <div><b>Слот:</b> ${order.delivery_slot}</div>
+                    </div>
+                    <div style="font-size:13px; margin-bottom:12px;">
+                        ${itemsHtml}
+                    </div>
+                    <div style="border-top:2px solid #000; padding-top:8px; text-align:right; font-size:16px; font-weight:700;">
+                        ИТОГО: ${order.total.toFixed(0)} ₽
+                    </div>
+                    <div style="text-align:center; margin-top:16px; font-size:11px; opacity:0.6;">
+                        Спасибо за заказ!<br>
+                        Мы свяжемся с вами для подтверждения.
+                    </div>
+                    <div style="margin-top:16px; display:flex; gap:1px; height:40px; align-items:flex-end;">
+                        ${Array.from({length: 40}).map(() => `<div style="flex:1; height:${Math.random()*100}%; background:#000;"></div>`).join('')}
+                    </div>
+                    <div style="text-align:center; font-size:10px; margin-top:4px; letter-spacing:2px;">${order.order_number}</div>
+                </div>
+            `;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'receipt-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Ваш чек</h2>
+                        <button class="close-btn" onclick="document.getElementById('receipt-modal').remove()">×</button>
+                    </div>
+                    ${receiptHtml}
+                    <button class="btn-submit" style="margin-top:12px;" onclick="document.getElementById('receipt-modal').remove()">Закрыть</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function submitOrder() {
+            const name = document.getElementById('order-name').value.trim();
+            const phone = document.getElementById('order-phone').value.trim();
+            const address = document.getElementById('order-address').value.trim();
+            const promo = document.getElementById('order-promo').value.trim().toUpperCase();
+            
+            if (!name || !phone || !address) { tg.showAlert('Заполните все поля'); return; }
+            if (!selectedSlot) { tg.showAlert('Выберите слот доставки'); return; }
+            if (!currentGeo.lat && !skipGeoFlag) { tg.showAlert('Отправьте геопозицию или нажмите "Пропустить"'); return; }
+            
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const orderData = {
+                items: cart.map(item => ({ product_id: item.product_id, quantity: item.quantity, price: item.price })),
+                total: total, name: name, phone: phone, address: address, user_id: user?.id || 0,
+                lat: currentGeo.lat, lon: currentGeo.lon,
+                delivery_slot: selectedSlot.value,
+                delivery_date: selectedSlot.date,
+                delivery_start: selectedSlot.start,
+                delivery_end: selectedSlot.end,
+                promo: promo
+            };
+            
+            try {
+                const response = await fetch(API_URL + '/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify(orderData)
+                });
+                const result = await response.json();
+                if (result.ok) {
+                    showReceipt(result);
+                    cart = []; updateCartUI(); closeCart(); switchScreen('screen-catalog');
+                    selectedSlot = null; currentGeo = { lat: 0, lon: 0 }; skipGeoFlag = false;
+                    document.getElementById('geo-btn').textContent = '📍 Отправить геопозицию';
+                    document.getElementById('geo-btn').classList.remove('ok');
+                    document.getElementById('order-promo').value = '';
+                } else { tg.showAlert('Ошибка оформления'); }
+            } catch (error) { tg.showAlert('Ошибка сети'); }
+        }
+
+        loadCategories();
+    </script>
+</body>
+</html>
