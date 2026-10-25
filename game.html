@@ -6,223 +6,60 @@
     <title>Кликер — Sever Tech Shop</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { 
-            --bg: #0a0a12; 
-            --card: #141424; 
-            --accent: #4a86ff; 
-            --accent2: #8b5cf6; 
-            --text: #e8e8f0; 
-            --danger: #ff4a4a; 
-            --gold: #ffcc00;
-        }
+        :root { --bg: #0a0a12; --card: #141424; --accent: #4a86ff; --accent2: #8b5cf6; --text: #e8e8f0; --danger: #ff4a4a; --gold: #ffcc00; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-            background: var(--bg);
-            color: var(--text); 
-            min-height: 100vh; 
-            padding: 16px; 
-            padding-bottom: 40px; 
-            overflow-x: hidden;
-        }
-        
-        /* Анимированный фон */
-        .bg-particles {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.3;
-            background-image: radial-gradient(circle at 20% 30%, rgba(74,134,255,0.4) 0%, transparent 20%),
-                              radial-gradient(circle at 80% 70%, rgba(139,92,246,0.4) 0%, transparent 20%);
-            animation: bgPulse 4s ease-in-out infinite alternate;
-        }
-        @keyframes bgPulse { 
-            from { transform: scale(1); opacity: 0.2; } 
-            to { transform: scale(1.1); opacity: 0.4; } 
-        }
-        
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; padding-bottom: 40px; overflow-x: hidden; }
+        .bg-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.3; background-image: radial-gradient(circle at 20% 30%, rgba(74,134,255,0.4) 0%, transparent 20%), radial-gradient(circle at 80% 70%, rgba(139,92,246,0.4) 0%, transparent 20%); animation: bgPulse 4s ease-in-out infinite alternate; }
+        @keyframes bgPulse { from { transform: scale(1); opacity: 0.2; } to { transform: scale(1.1); opacity: 0.4; } }
         .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; position: relative; z-index: 1; }
-        .title { font-size: 22px; font-weight: 800; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 20px rgba(74,134,255,0.3); }
+        .title { font-size: 22px; font-weight: 800; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .subtitle { font-size: 13px; opacity: 0.6; }
-        
-        /* Карточка боя с параллаксом */
-        .mob-card { 
-            background: linear-gradient(135deg, rgba(20,20,36,0.95), rgba(30,30,50,0.95)); 
-            border: 1px solid rgba(74, 134, 255, 0.3);
-            border-radius: 24px; 
-            padding: 20px; 
-            text-align: center; 
-            margin-bottom: 16px; 
-            position: relative; 
-            z-index: 1;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 30px rgba(74,134,255,0.1), inset 0 1px 0 rgba(255,255,255,0.1);
-            transition: box-shadow 0.5s ease;
-            overflow: hidden;
-        }
-        
-        .mob-card::before {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at center, rgba(74,134,255,0.15) 0%, transparent 60%);
-            pointer-events: none;
-            animation: rotateGlow 8s linear infinite;
-        }
-        @keyframes rotateGlow { 
-            from { transform: rotate(0deg); } 
-            to { transform: rotate(360deg); } 
-        }
-        
+        .mob-card { background: linear-gradient(135deg, rgba(20,20,36,0.95), rgba(30,30,50,0.95)); border: 1px solid rgba(74, 134, 255, 0.3); border-radius: 24px; padding: 20px; text-align: center; margin-bottom: 16px; position: relative; z-index: 1; box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 30px rgba(74,134,255,0.1); transition: box-shadow 0.5s ease; overflow: hidden; }
         .hero-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; position: relative; z-index: 2; }
         .hero-mini { font-size: 28px; filter: drop-shadow(0 0 10px var(--accent)); }
         .hero-title-label { font-size: 12px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-        
-        /* Прогресс до босса */
-        .progress-to-boss { 
-            width: 100%; height: 6px; 
-            background: rgba(0,0,0,0.5); 
-            border-radius: 3px; margin-bottom: 12px; overflow: hidden; 
-            position: relative; z-index: 2;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .progress-to-boss-fill { 
-            height: 100%; 
-            background: linear-gradient(90deg, var(--gold), #ff8a4a); 
-            transition: width 0.4s ease; 
-            box-shadow: 0 0 15px var(--gold);
-        }
-        
+        .progress-to-boss { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; margin-bottom: 12px; overflow: hidden; position: relative; z-index: 2; }
+        .progress-to-boss-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8a4a); transition: width 0.4s ease; box-shadow: 0 0 15px var(--gold); }
         .location-name { font-size: 14px; opacity: 0.8; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; position: relative; z-index: 2; margin-bottom: 8px; }
         .boss-label { font-size: 12px; color: var(--danger); font-weight: 800; height: 18px; letter-spacing: 2px; position: relative; z-index: 2; text-shadow: 0 0 15px var(--danger); }
-        
-        /* Анимированный моб */
         .click-area { width: 100%; padding: 10px; cursor: pointer; user-select: none; position: relative; z-index: 2; }
-        .mob-emoji { 
-            font-size: 90px; margin: 10px 0; 
-            transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1); 
-            filter: drop-shadow(0 10px 25px rgba(0,0,0,0.7));
-            animation: mobFloat 3s ease-in-out infinite;
-        }
-        @keyframes mobFloat { 
-            0%, 100% { transform: translateY(0); } 
-            50% { transform: translateY(-8px); } 
-        }
-        .click-area:active .mob-emoji { transform: scale(0.85) !important; }
-        .mob-emoji.boss { filter: drop-shadow(0 0 30px var(--danger)); font-size: 105px; }
-        
-        /* Полоска HP */
-        .mob-hp-bar { 
-            width: 100%; height: 24px; 
-            background: rgba(0,0,0,0.6); 
-            border-radius: 12px; overflow: hidden; margin-top: 14px; 
-            border: 1px solid rgba(255,255,255,0.08);
-            position: relative; z-index: 2;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-        }
-        .mob-hp-fill { 
-            height: 100%; 
-            background: linear-gradient(90deg, #ff2a2a, #ff8a4a, #ffcc00); 
-            transition: width 0.2s ease; 
-            box-shadow: 0 0 20px rgba(255,74,74,0.6);
-            position: relative;
-        }
-        .mob-hp-fill::after {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0;
-            height: 50%; background: rgba(255,255,255,0.25); border-radius: 12px 12px 0 0;
-        }
+        .mob-svg { width: 120px; height: 120px; margin: 10px auto; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8)); animation: mobFloat 3s ease-in-out infinite; transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes mobFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .click-area:active .mob-svg { transform: scale(0.85); }
+        .mob-hp-bar { width: 100%; height: 24px; background: rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; margin-top: 14px; border: 1px solid rgba(255,255,255,0.08); position: relative; z-index: 2; }
+        .mob-hp-fill { height: 100%; background: linear-gradient(90deg, #ff2a2a, #ff8a4a, #ffcc00); transition: width 0.2s ease; box-shadow: 0 0 20px rgba(255,74,74,0.6); }
         .mob-info { font-size: 14px; opacity: 0.8; margin-top: 10px; font-weight: 600; position: relative; z-index: 2; }
-        
-        /* Панель XP и урона */
-        .stats-panel {
-            display: flex; justify-content: space-around; margin-top: 16px;
-            background: rgba(0,0,0,0.3); border-radius: 14px; padding: 12px;
-            position: relative; z-index: 2;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
+        .stats-panel { display: flex; justify-content: space-around; margin-top: 16px; background: rgba(0,0,0,0.3); border-radius: 14px; padding: 12px; position: relative; z-index: 2; }
         .stat-item { text-align: center; }
         .stat-value { font-size: 22px; font-weight: 900; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .stat-label { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
-        
-        /* Всплывающие цифры */
-        .floating-text { 
-            position: absolute; font-weight: 900; font-size: 30px; 
-            pointer-events: none; animation: floatUp 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
-            z-index: 100; text-shadow: 0 0 15px currentColor;
-        }
+        .floating-text { position: absolute; font-weight: 900; font-size: 30px; pointer-events: none; animation: floatUp 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; z-index: 100; text-shadow: 0 0 15px currentColor; }
         .crit-text { color: var(--gold); font-size: 40px; text-shadow: 0 0 25px var(--gold), 0 0 50px var(--danger); }
-        @keyframes floatUp { 
-            0% { opacity: 1; transform: translateY(0) scale(1); } 
-            100% { opacity: 0; transform: translateY(-90px) scale(1.6); } 
-        }
-        
-        /* Частицы крита */
-        .crit-particle {
-            position: absolute;
-            width: 6px; height: 6px;
-            background: var(--gold);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 99;
-            box-shadow: 0 0 10px var(--gold);
-        }
-        @keyframes particleFly { 
-            0% { transform: translate(0,0) scale(1); opacity: 1; } 
-            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } 
-        }
-        
-        /* Вкладки */
-        .tabs { display: flex; gap: 6px; margin: 20px 0; position: relative; z-index: 1; }
-        .tab { 
-            flex: 1; padding: 12px 4px; text-align: center; 
-            background: var(--card); border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 14px; cursor: pointer; opacity: 0.5; font-size: 12px; font-weight: 700;
-            transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .tab.active { 
-            opacity: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); 
-            color: white; border-color: transparent;
-            box-shadow: 0 5px 25px rgba(74,134,255,0.5);
-        }
-        
-        /* Магазин */
-        .shop-item, .skin-item { 
-            background: var(--card); border-radius: 16px; padding: 14px; 
-            margin-bottom: 10px; display: flex; align-items: center; gap: 14px;
-            border: 1px solid rgba(255,255,255,0.03); transition: all 0.2s ease;
-            position: relative; z-index: 1;
-        }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-90px) scale(1.6); } }
+        .crit-particle { position: absolute; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; pointer-events: none; z-index: 99; box-shadow: 0 0 10px var(--gold); }
+        @keyframes particleFly { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+        .tabs { display: flex; gap: 4px; margin: 20px 0; position: relative; z-index: 1; }
+        .tab { flex: 1; padding: 10px 2px; text-align: center; background: var(--card); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; opacity: 0.5; font-size: 11px; font-weight: 700; transition: all 0.3s ease; text-transform: uppercase; }
+        .tab.active { opacity: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border-color: transparent; box-shadow: 0 5px 25px rgba(74,134,255,0.5); }
+        .shop-item, .skin-item { background: var(--card); border-radius: 16px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
         .skin-item { border: 1px solid transparent; }
-        .skin-item.active { border-color: var(--accent); background: linear-gradient(135deg, rgba(74,134,255,0.15), rgba(139,92,246,0.15)); box-shadow: 0 0 20px rgba(74,134,255,0.3); }
-        
-        .btn-buy {
-            padding: 10px 18px; border-radius: 12px; border: none;
-            background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white;
-            font-size: 12px; font-weight: 800; cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.2s ease;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            box-shadow: 0 4px 15px rgba(74,134,255,0.3);
-        }
+        .skin-item.active { border-color: var(--accent); background: linear-gradient(135deg, rgba(74,134,255,0.15), rgba(139,92,246,0.15)); }
+        .item-icon { width: 40px; height: 40px; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(74,134,255,0.3)); }
+        .btn-buy { padding: 10px 18px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-size: 12px; font-weight: 800; cursor: pointer; transition: transform 0.1s ease; text-transform: uppercase; box-shadow: 0 4px 15px rgba(74,134,255,0.3); }
         .btn-buy:active { transform: scale(0.93); }
         .btn-buy:disabled { background: #222; opacity: 0.4; cursor: default; box-shadow: none; }
-        
-        /* Герой */
         .hero-avatar { font-size: 110px; text-align: center; margin: 20px 0; filter: drop-shadow(0 0 40px var(--accent)); animation: mobFloat 4s ease-in-out infinite; }
-        
-        /* Лидерборд */
-        .lb-item { 
-            background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 8px; 
-            display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid rgba(255,255,255,0.03);
-            position: relative; z-index: 1;
-        }
+        .lb-item { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
         .lb-item.me { background: linear-gradient(135deg, rgba(74,134,255,0.2), rgba(139,92,246,0.2)); border-color: var(--accent); }
-        
-        /* Статистика */
         .stats-box { background: var(--card); border-radius: 16px; padding: 20px; margin-top: 16px; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
         .stats-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
         .stats-row b { color: var(--accent); font-size: 16px; }
+        .prestige-card { background: linear-gradient(135deg, #2a1a4a, #1a1a2e); border: 1px solid var(--gold); border-radius: 20px; padding: 20px; text-align: center; margin-top: 16px; position: relative; z-index: 1; }
+        .prestige-title { font-size: 24px; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px var(--gold); margin-bottom: 10px; }
+        .quest-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.03); position: relative; z-index: 1; }
+        .quest-progress { height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+        .quest-progress-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+        .item-stats { font-size: 11px; opacity: 0.7; margin-top: 4px; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -246,7 +83,7 @@
             <div class="boss-label" id="boss-label"></div>
             
             <div class="click-area" onclick="hitMob(event)">
-                <div class="mob-emoji" id="mob-emoji">👹</div>
+                <div id="mob-container"></div>
             </div>
             
             <div class="mob-hp-bar"><div class="mob-hp-fill" id="mob-hp-fill" style="width:100%"></div></div>
@@ -260,6 +97,10 @@
                 <div class="stat-item">
                     <div class="stat-value" id="clicker-power">1</div>
                     <div class="stat-label">Урон</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="clicker-crit">15%</div>
+                    <div class="stat-label">Крит</div>
                 </div>
             </div>
         </div>
@@ -284,21 +125,30 @@
         <div id="titles-list"></div>
     </div>
 
-    <div id="tab-stats" class="tab-content" style="display:none; position: relative; z-index: 1;">
-        <h3 style="margin-bottom: 12px;">📊 Статистика</h3>
-        <div class="stats-box">
-            <div class="stats-row"><span>Убито мобов:</span> <b id="stat-mobs">0</b></div>
-            <div class="stats-row"><span>Критов (x10):</span> <b id="stat-crits">0</b></div>
-            <div class="stats-row"><span>ДПС (в секунду):</span> <b id="stat-dps">0</b></div>
-            <div class="stats-row"><span>Всего XP:</span> <b id="stat-xp">0</b></div>
+    <div id="tab-quests" class="tab-content" style="display:none; position: relative; z-index: 1;">
+        <h3 style="margin-bottom: 12px;">📜 Ежедневные квесты</h3>
+        <div id="quests-list"></div>
+    </div>
+
+    <div id="tab-prestige" class="tab-content" style="display:none; position: relative; z-index: 1;">
+        <div class="prestige-card">
+            <div class="prestige-title">✨ ПЕРЕРОЖДЕНИЕ ✨</div>
+            <p style="font-size: 14px; opacity: 0.8; margin-bottom: 16px;">Сбросьте весь прогресс, чтобы получить <b>Души</b>. Каждая душа дает <b>+10% к урону</b> навсегда.</p>
+            <div style="font-size: 18px; margin-bottom: 16px;">У вас душ: <b id="prestige-souls" style="color: var(--gold);">0</b></div>
+            <div style="font-size: 14px; margin-bottom: 16px;">Текущий бонус к урону: <b id="prestige-bonus" style="color: var(--accent);">+0%</b></div>
+            <button class="btn-buy" style="width: 100%; padding: 16px; font-size: 16px;" onclick="doPrestige()">Переродиться (Нужно 10 000 XP)</button>
+        </div>
+        <div style="margin-top: 16px; font-size: 12px; opacity: 0.6; text-align: center;">
+            * При перерождении сбрасываются: XP, предметы и уровень мобов.
         </div>
     </div>
 
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('game', this)">⚔️ Бой</div>
-        <div class="tab" onclick="switchTab('shop', this)">🏪 Магазин</div>
-        <div class="tab" onclick="switchTab('hero', this)">👤 Герой</div>
-        <div class="tab" onclick="switchTab('stats', this)">📊 Статы</div>
+        <div class="tab active" onclick="switchTab('game', this)">⚔️</div>
+        <div class="tab" onclick="switchTab('shop', this)">🏪</div>
+        <div class="tab" onclick="switchTab('hero', this)">👤</div>
+        <div class="tab" onclick="switchTab('quests', this)">📜</div>
+        <div class="tab" onclick="switchTab('prestige', this)">✨</div>
     </div>
 
     <h3 style="margin: 20px 0 10px;">🏆 Топ-10 недели</h3>
@@ -327,50 +177,68 @@
         }
 
         if (!MY_ID) {
-            setTimeout(() => {
-                if (!MY_ID) {
-                    document.body.innerHTML = '<div style="text-align:center; padding: 50px; font-size: 20px;">⚠️ Ошибка: откройте игру через кнопку в боте!</div>';
-                }
-            }, 3000);
+            document.body.innerHTML = '<div style="text-align:center; padding: 50px; font-size: 20px;">⚠️ Ошибка: откройте игру через кнопку в боте!</div>';
+            throw new Error("No ID");
         } else {
             document.getElementById('user-name').textContent = user.first_name || 'Игрок';
         }
 
+        const svgIcons = {
+            "mouse": `<svg viewBox="0 0 24 24" fill="none" stroke="#4a86ff" stroke-width="1.5"><rect x="6" y="2" width="12" height="20" rx="6"/><line x1="12" y1="2" x2="12" y2="10"/><circle cx="12" cy="14" r="2" fill="#4a86ff"/></svg>`,
+            "keyboard": `<svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4"/></svg>`,
+            "headphones": `<svg viewBox="0 0 24 24" fill="none" stroke="#ffcc00" stroke-width="1.5"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="2" y="15" width="4" height="6" rx="2"/><rect x="18" y="15" width="4" height="6" rx="2"/></svg>`,
+            "monitor": `<svg viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`,
+            "cpu": `<svg viewBox="0 0 24 24" fill="none" stroke="#ff4a4a" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>`,
+            "gpu": `<svg viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="1.5"><rect x="2" y="8" width="20" height="8" rx="2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/><path d="M12 8v8"/></svg>`,
+            "pc": `<svg viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><rect x="5" y="6" width="14" height="10" rx="1"/><path d="M8 20h8"/></svg>`,
+            "server": `<svg viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg>`,
+            "mob_forest": `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#2d4a2d" stroke="#4a86ff" stroke-width="2"/><circle cx="35" cy="40" r="8" fill="#ff4a4a"/><circle cx="65" cy="40" r="8" fill="#ff4a4a"/><path d="M40 60 Q50 70 60 60" stroke="#fff" stroke-width="3" fill="none"/></svg>`,
+            "mob_mountain": `<svg viewBox="0 0 100 100"><path d="M10 80 L50 20 L90 80 Z" fill="#4a4a5a" stroke="#4a86ff" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="#ff4a4a"/></svg>`,
+            "mob_castle": `<svg viewBox="0 0 100 100"><rect x="20" y="40" width="60" height="50" fill="#2a2a2a" stroke="#4a86ff" stroke-width="2"/><path d="M20 40 L30 20 L40 40 M60 40 L70 20 L80 40" fill="#2a2a2a" stroke="#4a86ff" stroke-width="2"/><circle cx="50" cy="60" r="10" fill="#ff4a4a"/></svg>`,
+            "mob_volcano": `<svg viewBox="0 0 100 100"><path d="M10 80 L50 10 L90 80 Z" fill="#2e1515" stroke="#ff4a4a" stroke-width="2"/><path d="M30 50 L50 30 L70 50" stroke="#ffcc00" stroke-width="4" fill="none"/></svg>`,
+            "mob_space": `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="#1a1a3e" stroke="#8b5cf6" stroke-width="2"/><circle cx="35" cy="40" r="5" fill="#fff"/><circle cx="65" cy="60" r="3" fill="#fff"/><circle cx="50" cy="50" r="10" fill="#ff4a4a"/></svg>`,
+            "mob_ice": `<svg viewBox="0 0 100 100"><polygon points="50,10 90,50 50,90 10,50" fill="#152e2e" stroke="#4a86ff" stroke-width="2"/><polygon points="50,25 75,50 50,75 25,50" fill="#2e5e5e"/></svg>`,
+            "boss": `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#2a0a0a" stroke="#ff0000" stroke-width="3"/><circle cx="35" cy="40" r="10" fill="#ff4a4a"/><circle cx="65" cy="40" r="10" fill="#ff4a4a"/><path d="M30 70 L50 60 L70 70" stroke="#ff0000" stroke-width="4" fill="none"/><path d="M20 20 L30 30 M80 20 L70 30" stroke="#ff0000" stroke-width="3"/></svg>`
+        };
+
         const locations = [
-            { name: "🌲 Лес", emoji: "👹", color: "#1a1a2e" },
-            { name: "🏔 Горы", emoji: "🐻", color: "#2c2c3a" },
-            { name: "🏰 Замок", emoji: "🧟", color: "#151515" },
-            { name: "🔥 Вулкан", emoji: "🐉", color: "#2e1515" },
-            { name: "🌌 Космос", emoji: "👽", color: "#0f172a" },
-            { name: "❄️ Ледники", emoji: "🐧", color: "#152e2e" },
+            { name: "🌲 Лес", id: "mob_forest", color: "#1a1a2e" },
+            { name: "🏔 Горы", id: "mob_mountain", color: "#2c2c3a" },
+            { name: "🏰 Замок", id: "mob_castle", color: "#151515" },
+            { name: "🔥 Вулкан", id: "mob_volcano", color: "#2e1515" },
+            { name: "🌌 Космос", id: "mob_space", color: "#0f172a" },
+            { name: "❄️ Ледники", id: "mob_ice", color: "#152e2e" },
         ];
 
         let state = {
-            xp: 0, total_power: 1, items: [], 
+            xp: 0, total_power: 1, crit_chance: 0.15, crit_mult: 10, items: [], 
             active_skin: "skin_default", active_bg: "bg_default", active_title: "title_noob",
-            daily: 0, max_daily: 1000,
+            prestige_level: 0, daily: 0, max_daily: 1000,
             mobLevel: 1, mobsKilled: 0, mobsPerLocation: 20,
             currentMobHp: 100, maxMobHp: 100, isBoss: false,
-            crits: 0, totalMobs: 0
+            crits: 0, totalMobs: 0, isSpawning: false
         };
         
         let cosmetics = [];
+        let clickBuffer = 0;
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
-        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+        function initAudio() { try { if (!audioCtx) audioCtx = new AudioContext(); } catch(e){} }
         function playSound(freq, dur, type) {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type || 'sine';
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + dur);
+            try {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type || 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
         }
 
         function formatNumber(num) {
@@ -384,6 +252,8 @@
             document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
             document.getElementById('tab-' + tab).style.display = 'block';
             el.classList.add('active');
+            if (tab === 'quests') loadQuests();
+            if (tab === 'prestige') updatePrestigeUI();
         }
 
         function getMobHp(level, isBoss) {
@@ -400,10 +270,13 @@
                 if (data.ok) {
                     state.xp = data.xp;
                     state.total_power = data.total_power;
+                    state.crit_chance = data.crit_chance || 0.15;
+                    state.crit_mult = data.crit_mult || 10;
                     state.items = data.items;
                     state.active_skin = data.active_skin || "skin_default";
                     state.active_bg = data.active_bg || "bg_default";
                     state.active_title = data.active_title || "title_noob";
+                    state.prestige_level = data.prestige_level || 0;
                     
                     if (state.currentMobHp <= 0 || state.currentMobHp === 100) spawnMob();
                     else render();
@@ -425,7 +298,6 @@
         function updateHeroVisuals() {
             const skin = cosmetics.find(c => c.key === state.active_skin);
             const title = cosmetics.find(c => c.key === state.active_title);
-
             if (skin) {
                 document.getElementById('hero-avatar').textContent = skin.emoji;
                 document.getElementById('battle-skin').textContent = skin.emoji;
@@ -437,6 +309,7 @@
         }
 
         function spawnMob() {
+            state.isSpawning = false;
             state.isBoss = (state.mobsKilled > 0 && state.mobsKilled % 10 === 0);
             state.maxMobHp = getMobHp(state.mobLevel, state.isBoss);
             state.currentMobHp = state.maxMobHp;
@@ -459,12 +332,12 @@
             document.body.style.background = `radial-gradient(circle at top, ${bgColor} 0%, var(--bg) 100%)`;
 
             document.getElementById('location-name').textContent = loc.name + " · Уровень " + state.mobLevel;
-            document.getElementById('mob-emoji').textContent = state.isBoss ? '👺' : loc.emoji;
-            document.getElementById('mob-emoji').className = 'mob-emoji' + (state.isBoss ? ' boss' : '');
-            document.getElementById('boss-label').textContent = state.isBoss ? '⚠️ БОСС ⚠️' : '';
             
-            let untilBoss = 10 - (state.mobsKilled % 10);
-            if (untilBoss === 10) untilBoss = 0;
+            const mobContainer = document.getElementById('mob-container');
+            const svgCode = state.isBoss ? svgIcons['boss'] : svgIcons[loc.id];
+            mobContainer.innerHTML = `<div class="mob-svg">${svgCode}</div>`;
+            
+            document.getElementById('boss-label').textContent = state.isBoss ? '⚠️ БОСС ⚠️' : '';
             document.getElementById('boss-progress').style.width = ((state.mobsKilled % 10) / 10 * 100) + '%';
             
             if (state.isBoss) card.classList.add('boss-active');
@@ -472,6 +345,7 @@
             
             document.getElementById('clicker-xp').textContent = formatNumber(state.xp);
             document.getElementById('clicker-power').textContent = formatNumber(state.total_power);
+            document.getElementById('clicker-crit').textContent = Math.round(state.crit_chance * 100) + '%';
             
             const hpPercent = Math.max(0, (state.currentMobHp / state.maxMobHp) * 100);
             document.getElementById('mob-hp-fill').style.width = hpPercent + '%';
@@ -488,11 +362,18 @@
                 const div = document.createElement('div');
                 div.className = 'shop-item';
                 const canBuy = state.xp >= item.cost;
+                const iconHtml = svgIcons[item.key] ? `<div class="item-icon">${svgIcons[item.key]}</div>` : `<div style="font-size: 36px;">${item.emoji}</div>`;
+                
+                let extraStats = `+${item.power} урон`;
+                if (item.key === 'cpu') extraStats += ' · +5% крит';
+                if (item.key === 'gpu') extraStats += ' · +1 крит-множитель';
+
                 div.innerHTML = `
-                    <div style="font-size: 36px;">${item.emoji}</div>
+                    ${iconHtml}
                     <div style="flex: 1;">
                         <div style="font-weight: 700; font-size: 15px;">${item.name} ${item.count > 0 ? `<span style="color:#2ecc71; font-size:13px;">×${item.count}</span>` : ''}</div>
                         <div style="font-size: 12px; opacity: 0.6; margin-top: 2px;">${item.description}</div>
+                        <div class="item-stats">${extraStats}${item.count > 0 ? ` · всего +${formatNumber(item.total_power)}` : ''}</div>
                     </div>
                     <button class="btn-buy" onclick="buyItem('${item.key}')" ${canBuy ? '' : 'disabled'}>
                         ${formatNumber(item.cost)}
@@ -540,84 +421,96 @@
         }
 
         function spawnCritParticles(x, y) {
-            const card = document.getElementById('mob-card');
-            for (let i = 0; i < 12; i++) {
-                const p = document.createElement('div');
-                p.className = 'crit-particle';
-                const angle = (Math.PI * 2 * i) / 12;
-                const dist = 40 + Math.random() * 40;
-                p.style.left = x + 'px';
-                p.style.top = y + 'px';
-                p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
-                p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
-                p.style.animation = 'particleFly 0.6s ease-out forwards';
-                card.appendChild(p);
-                setTimeout(() => p.remove(), 600);
-            }
+            try {
+                const card = document.getElementById('mob-card');
+                for (let i = 0; i < 12; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'crit-particle';
+                    const angle = (Math.PI * 2 * i) / 12;
+                    const dist = 40 + Math.random() * 40;
+                    p.style.left = x + 'px';
+                    p.style.top = y + 'px';
+                    p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+                    p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+                    p.style.animation = 'particleFly 0.6s ease-out forwards';
+                    card.appendChild(p);
+                    setTimeout(() => p.remove(), 600);
+                }
+            } catch(e){}
         }
 
         async function hitMob(event) {
-            if (state.currentMobHp <= 0) return;
+            if (state.currentMobHp <= 0 || state.isSpawning) return;
             
             let damage = state.total_power;
             let isCrit = false;
-            if (Math.random() < 0.15) { damage *= 10; isCrit = true; state.crits++; }
+            if (Math.random() < state.crit_chance) { damage *= state.crit_mult; isCrit = true; state.crits++; }
             
             state.currentMobHp -= damage;
             state.totalMobs++;
+            clickBuffer++;
             
-            if (event) {
-                const rect = document.getElementById('mob-card').getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const y = event.clientY - rect.top;
-                
-                const float = document.createElement('div');
-                float.className = 'floating-text' + (isCrit ? ' crit-text' : '');
-                float.style.left = x + 'px';
-                float.style.top = y + 'px';
-                float.textContent = isCrit ? '💥 ' + formatNumber(damage) : formatNumber(damage);
-                document.getElementById('mob-card').appendChild(float);
-                setTimeout(() => float.remove(), 900);
-                
-                if (isCrit) spawnCritParticles(x, y);
-            }
-            
-            playSound(isCrit ? 800 : 400, 0.05, 'square');
-            
-            const card = document.getElementById('mob-card');
-            const emoji = document.getElementById('mob-emoji');
-            emoji.style.transform = 'scale(0.85)';
-            setTimeout(() => { emoji.style.transform = 'scale(1)'; }, 100);
-            
-            if (isCrit) {
-                card.classList.add('crit-shake');
-                setTimeout(() => card.classList.remove('crit-shake'), 300);
-                playSound(1200, 0.1, 'sawtooth');
-            }
-            
+            // Эффекты
+            try {
+                if (event) {
+                    const rect = document.getElementById('mob-card').getBoundingClientRect();
+                    const x = event.clientX - rect.left;
+                    const y = event.clientY - rect.top;
+                    const float = document.createElement('div');
+                    float.className = 'floating-text' + (isCrit ? ' crit-text' : '');
+                    float.style.left = x + 'px';
+                    float.style.top = y + 'px';
+                    float.textContent = isCrit ? '💥 ' + formatNumber(damage) : formatNumber(damage);
+                    document.getElementById('mob-card').appendChild(float);
+                    setTimeout(() => float.remove(), 900);
+                    if (isCrit) spawnCritParticles(x, y);
+                }
+                const mob = document.querySelector('.mob-svg');
+                if (mob) {
+                    mob.style.transform = 'scale(0.85)';
+                    setTimeout(() => { mob.style.transform = 'scale(1)'; }, 100);
+                }
+                if (isCrit) {
+                    const card = document.getElementById('mob-card');
+                    card.classList.add('crit-shake');
+                    setTimeout(() => card.classList.remove('crit-shake'), 300);
+                    playSound(1200, 0.1, 'sawtooth');
+                } else {
+                    playSound(400, 0.05, 'square');
+                }
+            } catch (e) {}
+
+            // Логика убийства и спавна
             if (state.currentMobHp <= 0) {
-                state.currentMobHp = 0; render();
-                try {
-                    const r = await fetch(API_URL + '/api/clicker/kill_mob', {
+                state.currentMobHp = 0; 
+                state.isSpawning = true; 
+                
+                document.getElementById('mob-hp-fill').style.width = '0%';
+                document.getElementById('mob-info').textContent = 'HP: 0 / ' + Math.round(state.maxMobHp);
+                
+                if (clickBuffer > 0) {
+                    const clicksToSend = clickBuffer;
+                    clickBuffer = 0;
+                    fetch(API_URL + '/api/clicker/click_batch', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                        body: JSON.stringify({ user_id: MY_ID, mob_level: state.mobLevel, is_boss: state.isBoss })
-                    });
-                    const data = await r.json();
-                    if (data.ok) {
-                        state.xp = data.xp;
-                        if (data.promo) tg.showAlert('🎁 Ты выбил промокод: ' + data.promo + ' (скидка 5%)!');
-                        state.mobsKilled++;
-                        playSound(200, 0.2, 'triangle');
-                        if (state.mobsKilled > 0 && state.mobsKilled % state.mobsPerLocation === 0) {
-                            state.mobLevel++;
-                            tg.showAlert('🌟 Переход на локацию ' + state.mobLevel + '!');
+                        body: JSON.stringify({ user_id: MY_ID, clicks: clicksToSend })
+                    }).then(res => res.json()).then(data => {
+                        if (data.ok) {
+                            state.xp = data.xp;
+                            state.mobsKilled++;
+                            if (state.mobsKilled > 0 && state.mobsKilled % state.mobsPerLocation === 0) {
+                                state.mobLevel++;
+                                tg.showAlert('🌟 Переход на локацию ' + state.mobLevel + '!');
+                            }
                         }
-                        spawnMob();
-                    }
-                } catch (e) { console.error(e); }
+                    }).catch(e => console.error(e));
+                }
+
+                setTimeout(() => { spawnMob(); }, 300);
             } else {
-                render();
+                document.getElementById('mob-hp-fill').style.width = Math.max(0, (state.currentMobHp / state.maxMobHp) * 100) + '%';
+                document.getElementById('mob-info').textContent = 'HP: ' + Math.round(state.currentMobHp) + ' / ' + Math.round(state.maxMobHp);
             }
         }
 
@@ -695,6 +588,56 @@
                     body: JSON.stringify({ user_id: MY_ID, seconds: 2 })
                 });
             } catch (e) {}
+        }
+
+        async function loadQuests() {
+            if (!MY_ID) return;
+            try {
+                const r = await fetch(API_URL + '/api/clicker/quests/' + MY_ID, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                const quests = await r.json();
+                const list = document.getElementById('quests-list');
+                list.innerHTML = '';
+                quests.forEach(q => {
+                    const div = document.createElement('div');
+                    div.className = 'quest-item';
+                    const percent = Math.min(100, (q.progress / q.target) * 100);
+                    div.innerHTML = `
+                        <div style="font-weight: 600;">${q.name}</div>
+                        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">${q.progress} / ${q.target}</div>
+                        <div class="quest-progress"><div class="quest-progress-fill" style="width: ${percent}%"></div></div>
+                        <div style="font-size: 12px; color: var(--gold); margin-top: 6px;">Награда: ${q.reward} XP</div>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function updatePrestigeUI() {
+            document.getElementById('prestige-souls').textContent = state.prestige_level || 0;
+            document.getElementById('prestige-bonus').textContent = '+' + ((state.prestige_level || 0) * 10) + '%';
+        }
+
+        async function doPrestige() {
+            if (state.xp < 10000) { tg.showAlert('Нужно 10 000 XP!'); return; }
+            if (!confirm('Ты уверен? Весь прогресс сбросится, но ты получишь души.')) return;
+            
+            try {
+                const r = await fetch(API_URL + '/api/clicker/prestige', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ user_id: MY_ID })
+                });
+                const data = await r.json();
+                if (data.ok) {
+                    tg.showAlert(`✨ Ты получил ${data.souls} душ! Всего душ: ${data.total_prestige}`);
+                    state.prestige_level = data.total_prestige;
+                    state.mobsKilled = 0;
+                    state.mobLevel = 1;
+                    loadStatus();
+                } else {
+                    tg.showAlert(data.message || 'Ошибка');
+                }
+            } catch (e) { tg.showAlert('Ошибка сети'); }
         }
 
         initAudio();
