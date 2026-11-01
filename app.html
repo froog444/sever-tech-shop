@@ -461,6 +461,11 @@ tg.expand();
 
 const _params = new URLSearchParams(location.search);
 const API_URL = _params.get('api') || 'https://2.26.22.148.nip.io';
+function imgUrl(raw) {
+    if (!raw) return null;
+    if (/^https?:\/\//.test(raw)) return raw;
+    return `${API_URL}/api/image/${raw}`;
+}
 
 let user = null;
 let MY_ID = null;
@@ -665,7 +670,7 @@ async function loadProductsByCategory(categoryName) {
       card.className = 'card';
       card.style.animationDelay = (i * 0.05) + 's';
       card.innerHTML = `
-        <div class="emoji">${p.image_url ? `<img src="${p.image_url}">` : '📦'}</div>
+        <div class="emoji">${p.image_url ? `<img src="${imgUrl(p.image_url)}">` : '📦'}</div>
         <div class="label">${escapeHtml(p.name)}</div>
         <div class="price">${Number(p.price).toLocaleString('ru-RU')} ₽</div>
         <button class="btn-add" id="btn-${p.id}">В корзину</button>`;
@@ -970,7 +975,7 @@ async function openProduct(productId) {
     currentQty = 1;
     currentColor = (p.colors && p.colors[0]) || '';
 
-    document.getElementById('ps-photo').innerHTML = p.image_url ? `<img src="${p.image_url}">` : '📦';
+    document.getElementById('ps-photo').innerHTML = p.image_url ? `<img src="${imgUrl(p.image_url)}">` : '📦';
     document.getElementById('ps-name').textContent = p.name;
     document.getElementById('ps-price').textContent = Number(p.price).toLocaleString('ru-RU') + ' ₽';
     document.getElementById('ps-desc').textContent = p.description || 'Описание отсутствует.';
