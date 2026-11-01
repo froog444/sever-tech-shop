@@ -459,7 +459,8 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-const API_URL = 'https://manliness-extent-absolute.ngrok-free.dev';
+const _params = new URLSearchParams(location.search);
+const API_URL = _params.get('api') || 'https://2.26.22.148.nip.io';
 
 let user = null;
 let MY_ID = null;
