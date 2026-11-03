@@ -1577,11 +1577,14 @@ function renderMyOrders() {
       ? `<button class="btn-add" style="margin-top:8px;background:rgba(74,134,255,.2);color:var(--accent);box-shadow:none" onclick="reorder(${o.id})">🔄 Повторить</button>` : '';
     const etaLine = (o.eta_minutes && ['accepted','picked','enroute'].includes(o.status))
       ? `<div class="eta-timer" id="eta-${o.id}"></div>` : '';
+    const slotLine = o.delivery_time ? `<div style="font-size:12px;opacity:.8;margin-top:4px">🕒 ${escapeHtml(o.delivery_time)}</div>` : '';
+    const courierLine = o.courier_name ? `<div style="font-size:12px;opacity:.8;margin-top:4px">🚚 Курьер: ${escapeHtml(o.courier_name)}</div>` : ''; 
     list.innerHTML += `
       <div class="order-item">
         <div class="status"><b>${o.order_number || '#'+o.id}</b> · ${statuses[o.status] || o.status} · ${(o.created_at||'').slice(0,16).replace('T',' ')}</div>
         <div class="total">${fmtMoney(o.total)}</div>
         <div style="font-size:12px;opacity:.7;margin-top:4px">${escapeHtml(o.address || '')}</div>
+        ${slotLine}${courierLine}
         ${etaLine}${chatBtn}${reviewBtn}${reorderBtn}
       </div>`;
   });
@@ -2198,12 +2201,12 @@ const svgIcons = {
 };
 
 const locations = [
-  { name: "🌲 Лес", id: "mob_forest", color: "#1a1a2e" },
-  { name: "🏔 Горы", id: "mob_mountain", color: "#2c2c3a" },
-  { name: "🏰 Замок", id: "mob_castle", color: "#151515" },
-  { name: "🔥 Вулкан", id: "mob_volcano", color: "#2e1515" },
-  { name: "🌌 Космос", id: "mob_space", color: "#0f172a" },
-  { name: "❄️ Ледники", id: "mob_ice", color: "#152e2e" }
+  { name: "🌲 Лес",       emoji: "🐺",         bossEmoji: "🐺💀", color: "#2d6a2d" },
+  { name: "🏔 Горы",      emoji: "🦅",         bossEmoji: "🦅💀", color: "#4a4a6a" },
+  { name: "🏰 Замок",     emoji: "🐉",         bossEmoji: "🐉💀", color: "#6a2d6a" },
+  { name: "🔥 Вулкан",    emoji: "👹",         bossEmoji: "👹💀", color: "#8a2a1a" },
+  { name: "🌌 Космос",    emoji: "👽",         bossEmoji: "👾💀", color: "#3a1a6a" },
+  { name: "❄️ Ледники",   emoji: "🐻‍❄️",       bossEmoji: "🐻‍❄️💀", color: "#1a4a6a" },
 ];
 
 // 🔥 ФИКС B — восстановление прогресса кликера из localStorage
@@ -2391,9 +2394,31 @@ function render() {
   const gameEl = document.getElementById('app-game');
   if (gameEl) gameEl.style.background = `radial-gradient(circle at top, ${bgColor} 0%, #0a0a12 100%)`;
 
-  const ln = document.getElementById('location-name'); if (ln) ln.textContent = loc.name + " · Уровень " + state.mobLevel;
+    const ln = document.getElementById('location-name'); if (ln) ln.textContent = loc.name + " · Уровень " + state.mobLevel;
   const mc = document.getElementById('mob-container');
-  if (mc) mc.innerHTML = `<div class="mob-svg">${state.isBoss ? svgIcons.boss : svgIcons[loc.id]}</div>`;
+    if (mc) {
+    const mobEmoji = state.isBoss ? loc.bossEmoji : loc.emoji;
+    const baseGlow = `drop-shadow(0 15px 25px rgba(0,0,0,.8)) drop-shadow(0 0 25px ${loc.color})`;
+    const bossGlow = state.isBoss
+      ? `drop-shadow(0 0 30px #ff0000) drop-shadow(0 0 60px #ff4a4a) ${baseGlow}`
+      : baseGlow;
+    mc.innerHTML = `
+      <div style="
+        font-size:110px;
+        line-height:1;
+        text-align:center;
+        margin:8px 0;
+        animation: mobFloat 3s ease-in-out infinite;
+        user-select: none;
+      ">
+        <div id="mob-inner" style="
+          filter: ${bossGlow};
+          transition: transform .08s cubic-bezier(.4,0,.2,1);
+          display: inline-block;
+        ">${mobEmoji}</div>
+      </div>
+    `;
+  }
   const bl = document.getElementById('boss-label'); if (bl) bl.textContent = state.isBoss ? '⚠️ БОСС ⚠️' : '';
   const bp = document.getElementById('boss-progress'); if (bp) bp.style.width = ((state.mobsKilled % 10) / 10 * 100) + '%';
 
@@ -2515,7 +2540,7 @@ async function hitMob(event) {
         if (isCrit) spawnCritParticles(x, y);
       }
     }
-    const mob = document.querySelector('#app-game .mob-svg');
+    const mob = document.getElementById('mob-inner');
     if (mob) { mob.style.transform = 'scale(0.85)'; setTimeout(() => { mob.style.transform = 'scale(1)'; }, 100); }
     if (isCrit) playSound(1200, 0.1, 'sawtooth'); else playSound(400, 0.05, 'square');
   } catch (e) {}
@@ -2669,10 +2694,47 @@ async function loadQuests() {
       const div = document.createElement('div');
       div.className = 'quest-item';
       const percent = Math.min(100, (q.progress / q.target) * 100);
-      div.innerHTML = `<div style="font-weight:600">${q.name}</div><div style="font-size:12px;opacity:.7;margin-top:4px">${q.progress} / ${q.target}</div><div class="quest-progress"><div class="quest-progress-fill" style="width:${percent}%"></div></div><div style="font-size:12px;color:var(--gold);margin-top:6px">Награда: ${q.reward} XP</div>`;
+      let action = '';
+      if (q.claimed) {
+        action = '<span style="color:var(--success);font-weight:700;font-size:12px">✅ Забрано</span>';
+      } else if (q.can_claim) {
+        action = `<button onclick="claimQuest('${q.id}')" style="padding:6px 14px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--gold),#ff8a4a);color:#000;font-weight:800;font-size:12px;cursor:pointer">🎁 Забрать</button>`;
+      } else {
+        action = `<span style="opacity:.5;font-size:12px">${q.progress}/${q.target}</span>`;
+      }
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div style="font-weight:700;flex:1;font-size:14px">${escapeHtml(q.name)}</div>
+          ${action}
+        </div>
+        <div class="quest-progress"><div class="quest-progress-fill" style="width:${percent}%"></div></div>
+        <div style="font-size:11px;color:var(--gold);margin-top:4px">Награда: ${q.reward} XP</div>
+      `;
       list.appendChild(div);
     });
   } catch (e) { console.error(e); }
+}
+
+async function claimQuest(questId) {
+  haptic('success');
+  try {
+    const r = await fetch(API_URL + '/api/clicker/quests/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({ user_id: MY_ID, quest_id: questId })
+    });
+    const data = await r.json();
+    if (data.ok) {
+      state.xp = data.xp || state.xp;
+      updateLevelCard(state.xp);
+      showToast(`+${data.reward} XP получено!`, 'success');
+      playSound(1000, 0.15, 'sine');
+      loadQuests();
+      loadStatus();
+    } else {
+      showToast(data.message || 'Ошибка', 'warning');
+    }
+  } catch (e) { showToast('Ошибка сети', 'error'); }
 }
 
 // ЕЖЕДНЕВНЫЙ БОНУС
@@ -2722,7 +2784,7 @@ async function claimDailyBonus() {
 
     if (data.ok) {
       lsSet(DAILY_BONUS_KEY, now);
-      state.xp = data.xp || (state.xp + (data.bonus || 500));
+      state.xp = (typeof data.xp === 'number') ? data.xp : (state.xp + (data.bonus || 500));
       updateLevelCard(state.xp);
       showToast(`+${data.bonus || 500} XP получено!`, 'success');
       playSound(1000, 0.15, 'sine');
