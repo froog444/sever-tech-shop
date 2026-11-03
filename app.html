@@ -1450,9 +1450,14 @@ function renderProductGrid(grid, products) {
       ? `<button class="btn-add" disabled>Нет в наличии</button>`
       : `<button class="btn-add" id="btn-${p.id}">В корзину</button>`;
 
+        const imgHtml = p.image_url
+      ? `<img src="${imgUrl(p.image_url)}" loading="lazy" decoding="async"
+             onerror="this.style.display='none';this.parentElement.innerHTML='📦';">`
+      : '📦';
+
     card.innerHTML = `
       <button class="card-fav ${fav ? 'active' : ''}" onclick="event.stopPropagation(); toggleWishlist(${p.id}); this.classList.toggle('active'); this.textContent = this.classList.contains('active') ? '❤️' : '🤍';">${fav ? '❤️' : '🤍'}</button>
-      <div class="emoji">${p.image_url ? `<img src="${imgUrl(p.image_url)}" loading="lazy">` : '📦'}</div>
+      <div class="emoji">${imgHtml}</div>
       <div class="label">${escapeHtml(p.name)}</div>
       <div class="price">${fmtMoney(p.price)}</div>
       ${stockLine}
@@ -1463,7 +1468,15 @@ function renderProductGrid(grid, products) {
     if (addBtn && !isOutOfStock) {
       addBtn.onclick = (e) => { e.stopPropagation(); quickAddById(p.id); };
     }
-    grid.appendChild(card);
+        grid.appendChild(card);
+  });
+
+  // 🔥 Предзагрузка первых 4 картинок параллельно (ускоряет видимую часть)
+  sorted.slice(0, 4).forEach(p => {
+    if (p.image_url) {
+      const img = new Image();
+      img.src = imgUrl(p.image_url);
+    }
   });
 }
 
