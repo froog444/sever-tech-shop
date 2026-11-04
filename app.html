@@ -866,6 +866,28 @@ tg.setBackgroundColor('#0a0a12');
 
 const _params = new URLSearchParams(location.search);
 const API_URL = _params.get('api') || 'https://2.26.22.148.nip.io';
+// ===== FETCH С ТАЙМАУТОМ (ключ от «вечной загрузки») =====
+async function fetchT(url, opts = {}, ms = 8000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+// ===== ГЛОБАЛЬНЫЙ ПЕРЕХВАТ: любой fetch теперь с таймаутом 15с =====
+const _rawFetch = window.fetch.bind(window);
+window.fetch = async (url, opts = {}) => {
+  if (opts && opts.signal) return _rawFetch(url, opts);   // уже со своим abort — не трогаем
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    return await _rawFetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+};
 
 function imgUrl(raw) {
   if (!raw) return null;
@@ -906,7 +928,8 @@ function resolveUser() {
         // ... остальные поля, как было
     };
 }
-
+user = resolveUser();
+MY_ID = user.id;
 // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
 let cart = [];
 let _productsCache = {};
@@ -1549,7 +1572,15 @@ function setScreen(name) {
       if (typeof renderBuffs === 'function') renderBuffs();
     }, 2000);
   }
-  if (name === 'app-game' && typeof render === 'function' && typeof state !== 'undefined' && state.xp !== undefined) render();
+  if (name === 'app-game' && !gameInterval) {
+  gameInterval = setInterval(() => {
+    if (typeof handleAutoClick === 'function') handleAutoClick();
+    if (typeof renderBuffs === 'function') renderBuffs();
+  }, 2000);
+} else if (name !== 'app-game' && gameInterval) {
+  clearInterval(gameInterval);
+  gameInterval = null;
+}
 }
 
 function goSplash() { setScreen('splash'); haptic('light'); }
@@ -1580,15 +1611,18 @@ function goGame() {
 
 async function fillSplashUser() {
   const el = document.getElementById('splash-user');
+  if (!user) { el.innerHTML = `ID: <b>${MY_ID || '—'}</b>`; return; }
   const name = (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
-  let xp = 0;
+  el.innerHTML = name ? `Привет, <b>${escapeHtml(name)}</b>!` : `ID: <b>${MY_ID}</b>`;
   try {
-    const r = await fetch(`${API_URL}/api/clicker/status/${MY_ID}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const r = await fetchT(`${API_URL}/api/clicker/status/${MY_ID}`,
+      { headers: { 'ngrok-skip-browser-warning': 'true' } }, 4000);
     const d = await r.json();
-    if (d.ok) xp = d.xp || 0;
+    if (d.ok && d.xp > 0) {
+      el.innerHTML += ` · <b>${fmt(d.xp)}</b> XP`;
+      updateLevelCard(d.xp);
+    }
   } catch (e) {}
-  el.innerHTML = name ? `Привет, <b>${escapeHtml(name)}</b>! · <b>${fmt(xp)}</b> XP` : `ID: <b>${MY_ID}</b>`;
-  if (xp > 0) updateLevelCard(xp);
 }
 
 fillSplashUser();
@@ -1624,6 +1658,7 @@ function shopSwitchScreen(screenId) {
     const el = document.getElementById(id);
     if (el) el.style.display = (id === screenId) ? 'block' : 'none';
   });
+  document.getElementById('main-nav').style.display = (screenId === 'screen-chat') ? 'none' : 'flex';
   document.getElementById('nav-shop')?.classList.toggle('active', screenId === 'screen-catalog' || screenId === 'screen-products' || screenId === 'screen-search');
   document.getElementById('nav-prof')?.classList.toggle('active', screenId === 'screen-profile');
   document.getElementById('nav-game')?.classList.remove('active');
@@ -1677,16 +1712,12 @@ async function loadCategoryFeed() {
   if (!feed) return;
   feed.innerHTML = '<div class="skeleton" style="width:100px;height:38px;border-radius:20px"></div>'.repeat(3);
   try {
-    const [rc, rp] = await Promise.all([
-      fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } }),
-      fetch(API_URL + '/api/products', { headers: { 'ngrok-skip-browser-warning': 'true' } })
-    ]);
+    const rc = await fetchT(API_URL + '/api/categories',
+      { headers: { 'ngrok-skip-browser-warning': 'true' } }, 8000);
+    if (!rc.ok) throw new Error('HTTP ' + rc.status);
     const cats = await rc.json();
-    allProductsCache = await rp.json();
-    allProductsCache.forEach(p => { _productsCache[p.id] = p; });
-
     feed.innerHTML = '';
-    if (!cats.length && !allProductsCache.length) {
+    if (!cats.length) {
       feed.innerHTML = '<div class="empty-state" style="width:100%"><div class="empty-icon">📦</div><h3>Каталог пуст</h3></div>';
       return;
     }
@@ -1703,9 +1734,26 @@ async function loadCategoryFeed() {
       };
       feed.appendChild(chip);
     });
+    // ⚡ Товары грузим ОТДЕЛЬНО, не блокируя категории
+    loadFeedProducts();
+  } catch (e) {
+    console.error('loadCategoryFeed:', e);
+    feed.innerHTML = `<div class="empty-state" style="width:100%"><div class="empty-icon">⚠️</div><h3>Каталог не загрузился</h3><p>${escapeHtml(String(e.message || e))}</p><button class="btn-add" style="max-width:200px;margin:16px auto 0" onclick="loadCategoryFeed()">🔄 Повторить</button></div>`;
+  }
+}
+
+async function loadFeedProducts() {
+  try {
+    const rp = await fetchT(API_URL + '/api/products',
+      { headers: { 'ngrok-skip-browser-warning': 'true' } }, 12000);
+    if (!rp.ok) throw new Error('HTTP ' + rp.status);
+    allProductsCache = await rp.json();
+    allProductsCache.forEach(p => { _productsCache[p.id] = p; });
     renderFeedProducts(null);
   } catch (e) {
-    feed.innerHTML = '<p style="color:var(--danger);padding:10px">Ошибка загрузки</p>';
+    console.error('loadFeedProducts:', e);
+    const content = document.getElementById('catalog-content');
+    if (content) content.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Товары не загрузились</h3><p>${escapeHtml(String(e.message || e))}</p><button class="btn-add" style="max-width:200px;margin:16px auto 0" onclick="loadFeedProducts()">🔄 Повторить</button></div>`;
   }
 }
 
@@ -1783,17 +1831,20 @@ async function loadProductsByCategory(categoryName) {
   const grid = document.getElementById('product-grid');
   grid.innerHTML = skeletonGrid(4);
   try {
-    const r = await fetch(API_URL + '/api/products/' + encodeURIComponent(categoryName), { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const r = await fetchT(API_URL + '/api/products/' + encodeURIComponent(categoryName),
+      { headers: { 'ngrok-skip-browser-warning': 'true' } }, 8000);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const products = await r.json();
     window._lastProducts = products;
     document.getElementById('category-count').textContent = products.length + ' товаров';
     if (products.length === 0) {
-      grid.innerHTML = `<div style="grid-column:span 2"><div class="empty-state"><div class="empty-icon">📦</div><h3>Пусто</h3><p>В этой категории пока нет товаров</p></div></div>`;
+      grid.innerHTML = `<div style="grid-column:span 2"><div class="empty-state"><div class="empty-icon">📦</div><h3>Пусто</h3></div></div>`;
       return;
     }
     renderProductGrid(grid, products);
   } catch (e) {
-    grid.innerHTML = '<p style="grid-column:span 2;text-align:center;color:var(--danger)">Ошибка загрузки</p>';
+    console.error('loadProductsByCategory:', e);
+    grid.innerHTML = `<div style="grid-column:span 2"><div class="empty-state"><div class="empty-icon">⚠️</div><h3>Ошибка</h3><p>${escapeHtml(String(e.message || e))}</p><button class="btn-add" style="max-width:200px;margin:16px auto 0" onclick="loadProductsByCategory('${escapeHtml(categoryName)}')">🔄 Повторить</button></div></div>`;
   }
 }
 
@@ -2224,7 +2275,7 @@ function openChat(chatId, title) {
   document.getElementById('chat-title').textContent = title;
   document.getElementById('chat-messages').innerHTML = '<p style="text-align:center;opacity:.5">Загрузка...</p>';
   shopSwitchScreen('screen-chat');
-  document.getElementById('main-nav').style.display = 'none';
+  
   loadMessages();
   if (chatInterval) clearInterval(chatInterval);
   chatInterval = setInterval(loadMessages, 3000);
