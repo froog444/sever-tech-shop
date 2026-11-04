@@ -1188,7 +1188,7 @@ body {
       <span class="menu-badge" id="ach-count">0</span>
     </button>
     <button class="menu-btn" onclick="openWishlist()"><span class="menu-icon">❤️</span>Избранное</button>
-    <button class="menu-btn" onclick="loadMyOrders()"><span class="menu-icon">📦</span>Мои заказы</button>
+    <button class="menu-btn" onclick="toggleMyOrders()"><span class="menu-icon">📦</span>Мои заказы</button>
     <div id="orders-filters" style="display:none">
       <div class="orders-filter">
         <div class="of-chip active" onclick="filterOrders('all', this)">Все</div>
@@ -2574,8 +2574,32 @@ function showReceipt(order) {
 }
 
 /* ============ §16 MY ORDERS ============ */
+function toggleMyOrders() {
+  haptic('light');
+  const list = $('my-orders-list');
+  const filters = $('orders-filters');
+
+  if (list.dataset.open === '1') {
+    // Закрываем: скрываем, чистим, гасим таймеры ETA
+    list.dataset.open = '0';
+    list.style.display = 'none';
+    filters.style.display = 'none';
+    list.innerHTML = '';
+    Object.keys(etaIntervals).forEach(k => {
+      clearInterval(etaIntervals[k]);
+      delete etaIntervals[k];
+    });
+    return;
+  }
+
+  list.dataset.open = '1';
+  list.style.display = 'block';
+  loadMyOrders();
+}
 async function loadMyOrders() {
   const list = $('my-orders-list');
+  list.dataset.open = '1';
+  list.style.display = 'block';
   list.innerHTML = '<div class="skeleton" style="height:80px;margin-bottom:8px"></div>';
   $('orders-filters').style.display = 'block';
   try {
@@ -2603,8 +2627,9 @@ function renderMyOrders() {
   else if (currentOrdersFilter === 'delivered') filtered = allOrdersCache.filter(o => o.status === 'delivered');
   else if (currentOrdersFilter === 'cancelled') filtered = allOrdersCache.filter(o => o.status === 'cancelled');
 
-  if (!filtered.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><h3>Нет заказов</h3></div>`;
+    if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><h3>Нет заказов</h3></div>
+      <button class="menu-btn" style="justify-content:center;opacity:.7" onclick="toggleMyOrders()">✕ Скрыть</button>`;
     return;
   }
   list.innerHTML = filtered.map(o => {
@@ -2626,11 +2651,15 @@ function renderMyOrders() {
       </div>`;
   }).join('');
 
-  filtered.forEach(o => {
+    filtered.forEach(o => {
     if (o.eta_minutes && ['accepted','picked','enroute'].includes(o.status) && o.created_at) {
       startEtaTimer(o.id, o.eta_minutes, o.created_at);
     }
   });
+
+  // Кнопка закрытия
+  list.insertAdjacentHTML('beforeend',
+    '<button class="menu-btn" style="justify-content:center;margin-top:8px;opacity:.7" onclick="toggleMyOrders()">✕ Скрыть заказы</button>');
 }
 
 let etaIntervals = {};
