@@ -1498,14 +1498,81 @@ function skeletonGrid(count = 4) {
   return h;
 }
 
-function updateOffline() {
+
+// ============ §CONNECTION STATUS ============
+// Единая точка правды: только успешный fetch = "онлайн".
+// navigator.onLine не используем — врёт в WebView.
+
+function setConnectionStatus(isOnline, reason = '') {
   const banner = $('offline-banner');
-  if (!navigator.onLine) banner.classList.add('show');
-  else banner.classList.remove('show');
+  if (!banner) return;
+  if (isOnline) {
+    banner.classList.remove('show');
+  } else {
+    banner.innerHTML = reason
+      ? `⚠️ ${escapeHtml(reason)}`
+      : '📴 Нет соединения — проверьте интернет';
+    banner.classList.add('show');
+  }
 }
-window.addEventListener('online', () => { updateOffline(); showToast('Соединение восстановлено', 'success'); });
-window.addEventListener('offline', updateOffline);
-updateOffline();
+
+let _healthFailures = 0;
+
+async function checkHealth() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 сек вместо 3 — API бывает медленным
+  try {
+    const r = await fetch(API_URL + '/api/health', {
+      method: 'GET',
+      signal: controller.signal,
+      headers: { 'ngrok-skip-browser-warning': 'true' },
+      cache: 'no-store',
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    if (!data || data.ok !== true) throw new Error('bad response');
+
+    // Успех
+    _healthFailures = 0;
+    setConnectionStatus(true);
+  } catch (e) {
+    _healthFailures++;
+    console.warn('[health] fail #' + _healthFailures + ':', e.name || e.message);
+    // Показываем баннер только после 2 подряд неудач (первый пинг мог совпасть с рестартом сервера)
+    if (_healthFailures >= 2) {
+      setConnectionStatus(false, 'Сервер не отвечает — проверьте соединение');
+    }
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+let healthInterval = null;
+function startHealthCheck() {
+  if (healthInterval) clearInterval(healthInterval);
+  // Первый пинг сразу при загрузке — но не блокирующий
+  checkHealth();
+  healthInterval = setInterval(checkHealth, 30000);
+}
+
+// Онлайн/оффлайн события от браузера — только как триггер проверки, не как источник правды
+window.addEventListener('online', () => {
+  checkHealth();
+  showToast('Проверяем соединение...', 'info');
+});
+window.addEventListener('offline', () => {
+  // Не доверяем сразу, перепроверим fetch'ем
+  checkHealth();
+});
+
+// При возврате фокуса на вкладку — тоже перепроверяем (раз в 30 сек можно и пропустить)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) checkHealth();
+});
+
+// При старте НЕ вызываем updateOffline() — статус выставит первый checkHealth().
+// Но чтобы не показывать ложный баннер при медленном первом запросе — прячем его:
+setConnectionStatus(true);
 
 /* ============ §2 GLOBAL STATE ============ */
 let cart = lsGet('cart_' + MY_ID, []);
@@ -1683,15 +1750,64 @@ async function initFeed() {
   const chips = $('feed-chips');
   chips.innerHTML = '<div class="chip active">Все</div>';
   try {
-    const cats = await fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(r => r.json());
-    const all = [{ name: 'Все' }, ...cats];
+    const r = await fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const cats = await r.json();
+    const safeCats = Array.isArray(cats) ? cats.filter(c => c && c.name) : [];
+    const all = [{ name: 'Все' }, ...safeCats];
     chips.innerHTML = all.map((c, i) =>
-      `<div class="chip ${i === 0 ? 'active' : ''}" onclick="selectCategory('${escapeHtml(c.name)}', this)">${escapeHtml(c.name)}</div>`
+      `<div class="chip ${i === 0 ? 'active' : ''}" data-idx="${i}">${escapeHtml(c.name)}</div>`
     ).join('');
+    chips.querySelectorAll('.chip').forEach(chip => {
+      const idx = parseInt(chip.dataset.idx);
+      chip.addEventListener('click', () => selectCategory(all[idx].name, chip));
+    });
     await selectCategory('Все', chips.querySelector('.chip'));
-  } catch(e) {
+  } catch (e) {
+    console.error('[initFeed]', e);
     const grid = $('product-grid');
     grid.innerHTML = '<p style="grid-column:span 2;text-align:center;color:var(--danger)">Ошибка загрузки каталога</p>';
+  }
+}
+
+async function selectCategory(name, el) {
+  haptic('light');
+  document.querySelectorAll('#feed-chips .chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const grid = $('product-grid');
+  grid.innerHTML = skeletonGrid(4);
+  try {
+    let products = [];
+    if (name === 'Все') {
+      const rc = await fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+      const cats = rc.ok ? await rc.json() : [];
+      const safeCats = Array.isArray(cats) ? cats.filter(c => c && c.name) : [];
+      const results = await Promise.all(
+        safeCats.map(c =>
+          fetch(`${API_URL}/api/products/${encodeURIComponent(c.name)}`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+            .then(res => res.ok ? res.json() : [])
+            .catch(() => [])
+        )
+      );
+      products = results.filter(Array.isArray).flat();
+    } else {
+      const r = await fetch(`${API_URL}/api/products/${encodeURIComponent(name)}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+      if (r.ok) {
+        const data = await r.json();
+        products = Array.isArray(data) ? data : [];
+      }
+    }
+    products = products.filter(p => p && typeof p === 'object' && p.id);
+    products.forEach(p => _productsCache[p.id] = p);
+    window._lastProducts = products;
+    if (!products.length) {
+      grid.innerHTML = `<div style="grid-column:span 2"><div class="empty-state"><div class="empty-icon">📦</div><h3>Пусто</h3><p>Товаров пока нет</p></div></div>`;
+      return;
+    }
+    renderProductGrid(grid, products);
+  } catch (e) {
+    console.error('[selectCategory]', e);
+    grid.innerHTML = '<p style="grid-column:span 2;text-align:center;color:var(--danger)">Ошибка загрузки</p>';
   }
 }
 
@@ -3478,20 +3594,7 @@ function startAutoLoop() {
   }, 2000);
 }
 
-/* ============ §30 HEALTH CHECK ============ */
-let healthInterval = null;
-function startHealthCheck() {
-  if (healthInterval) clearInterval(healthInterval);
-  healthInterval = setInterval(async () => {
-    try {
-      const r = await fetch(API_URL + '/api/health', { signal: AbortSignal.timeout(3000) });
-      if (!r.ok) throw new Error('bad');
-      updateOffline();
-    } catch(e) {
-      $('offline-banner')?.classList.add('show');
-    }
-  }, 30000);
-}
+
 
 /* ============ §31 KEYBOARD / ESC ============ */
 document.addEventListener('keydown', (e) => {
