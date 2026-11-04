@@ -1423,7 +1423,7 @@ const tg = window.Telegram.WebApp;
 try { tg.ready(); tg.expand(); tg.setHeaderColor('#0e0e18'); tg.setBackgroundColor('#0e0e18'); } catch(e){}
 
 const _params = new URLSearchParams(location.search);
-const API_URL = _params.get('api') || 'https://2.26.22.148.nip.io';
+const API_URL = (_params.get('api') || 'https://2.26.22.148.nip.io').replace(/\/+$/, '');
 
 function imgUrl(raw) {
   if (!raw) return null;
@@ -1500,81 +1500,125 @@ function skeletonGrid(count = 4) {
 
 
 // ============ §CONNECTION STATUS ============
-// Единая точка правды: только успешный fetch = "онлайн".
+// Источник правды — только успешный fetch.
 // navigator.onLine не используем — врёт в WebView.
+
+let _healthFailures = 0;
+let _lastHealthOk = 0;
+let _healthChecking = false;
+let healthInterval = null;
 
 function setConnectionStatus(isOnline, reason = '') {
   const banner = $('offline-banner');
   if (!banner) return;
   if (isOnline) {
     banner.classList.remove('show');
+    banner.innerHTML = '📴 Нет соединения — нажмите, чтобы проверить';
   } else {
     banner.innerHTML = reason
-      ? `⚠️ ${escapeHtml(reason)}`
-      : '📴 Нет соединения — проверьте интернет';
+      ? `⚠️ ${escapeHtml(reason)} <span style="opacity:.7">(нажмите для повтора)</span>`
+      : '📴 Нет соединения — нажмите, чтобы проверить';
     banner.classList.add('show');
   }
 }
 
-let _healthFailures = 0;
-
-async function checkHealth() {
+async function _healthFetchOnce(url) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 сек вместо 3 — API бывает медленным
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 сек — вежливо к мобильному интернету
   try {
-    const r = await fetch(API_URL + '/api/health', {
+    const r = await fetch(url, {
       method: 'GET',
       signal: controller.signal,
       headers: { 'ngrok-skip-browser-warning': 'true' },
       cache: 'no-store',
     });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (!r.ok) return { ok: false, error: 'HTTP ' + r.status };
+    const ct = r.headers.get('content-type') || '';
+    if (!ct.includes('json')) return { ok: false, error: 'not_json (ct=' + ct + ')' };
     const data = await r.json();
-    if (!data || data.ok !== true) throw new Error('bad response');
-
-    // Успех
-    _healthFailures = 0;
-    setConnectionStatus(true);
+    // принимаем и {"ok":true}, и {"message":"API работает", ...} от root
+    const okFlag = (data && (data.ok === true || data.message === 'API работает'));
+    return { ok: !!okFlag, data };
   } catch (e) {
-    _healthFailures++;
-    console.warn('[health] fail #' + _healthFailures + ':', e.name || e.message);
-    // Показываем баннер только после 2 подряд неудач (первый пинг мог совпасть с рестартом сервера)
-    if (_healthFailures >= 2) {
-      setConnectionStatus(false, 'Сервер не отвечает — проверьте соединение');
-    }
+    return { ok: false, error: e.name === 'AbortError' ? 'timeout' : (e.message || e.name || 'network') };
   } finally {
     clearTimeout(timeoutId);
   }
 }
 
-let healthInterval = null;
+async function checkHealth() {
+  if (_healthChecking) return;
+  _healthChecking = true;
+  try {
+    // 1) основной эндпоинт
+    let res = await _healthFetchOnce(API_URL + '/api/health');
+
+    // 2) fallback — корень (если proxy режет /api/*)
+    if (!res.ok) {
+      console.warn('[health] /api/health failed:', res.error, '→ fallback /');
+      const fb = await _healthFetchOnce(API_URL + '/');
+      if (fb.ok) res = fb;
+    }
+
+    if (res.ok) {
+      const wasFail = _healthFailures > 0;
+      _healthFailures = 0;
+      _lastHealthOk = Date.now();
+      setConnectionStatus(true);
+      if (wasFail) console.info('[health] recovered');
+      else console.debug('[health] OK');
+    } else {
+      _healthFailures++;
+      const sinceOk = _lastHealthOk ? Math.round((Date.now() - _lastHealthOk) / 1000) : null;
+      console.warn(`[health] fail #${_healthFailures} (${res.error}); last OK: ${sinceOk !== null ? sinceOk + 's ago' : 'never'}`);
+
+      // Показываем баннер только после 3 подряд фейлов (~1.5 мин непрерывного сбоя)
+      if (_healthFailures >= 3) {
+        setConnectionStatus(false, 'Сервер не отвечает — проверьте соединение');
+      }
+    }
+  } finally {
+    _healthChecking = false;
+  }
+}
+
+function manualHealthRetry() {
+  haptic('light');
+  showToast('Проверяем соединение…', 'info');
+  _healthFailures = 0;
+  checkHealth();
+}
+
 function startHealthCheck() {
   if (healthInterval) clearInterval(healthInterval);
-  // Первый пинг сразу при загрузке — но не блокирующий
   checkHealth();
   healthInterval = setInterval(checkHealth, 30000);
 }
 
-// Онлайн/оффлайн события от браузера — только как триггер проверки, не как источник правды
 window.addEventListener('online', () => {
+  console.info('[net] online event');
   checkHealth();
-  showToast('Проверяем соединение...', 'info');
+  showToast('Соединение восстановлено', 'success');
 });
 window.addEventListener('offline', () => {
-  // Не доверяем сразу, перепроверим fetch'ем
-  checkHealth();
+  // Не доверяем сразу — на Android бывают ложные offline-события
+  // при переключении Wi-Fi ↔ мобильный интернет
+  console.info('[net] offline event, checking in 3s…');
+  setTimeout(checkHealth, 3000);
 });
 
-// При возврате фокуса на вкладку — тоже перепроверяем (раз в 30 сек можно и пропустить)
+// При возврате фокуса — перепроверяем
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) checkHealth();
 });
 
-// При старте НЕ вызываем updateOffline() — статус выставит первый checkHealth().
-// Но чтобы не показывать ложный баннер при медленном первом запросе — прячем его:
+// На старте прячем баннер — статус выставит первый checkHealth()
 setConnectionStatus(true);
 
+
+
 /* ============ §2 GLOBAL STATE ============ */
+
 let cart = lsGet('cart_' + MY_ID, []);
 let wishlist = lsGet('wishlist_' + MY_ID, []);
 let recentViewed = lsGet('recent_' + MY_ID, []);
