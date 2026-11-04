@@ -876,22 +876,36 @@ function imgUrl(raw) {
 let user = null;
 let MY_ID = null;
 
-(function resolveUser() {
-  if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-    user = tg.initDataUnsafe.user;
-    MY_ID = user.id;
-  } else {
-    const urlId = new URLSearchParams(location.search).get('id');
-    if (urlId) {
-      MY_ID = parseInt(urlId);
-      user = { id: MY_ID, first_name: 'Игрок' };
+function resolveUser() {
+    // 1. Пробуем из URL ?id=
+    const params = new URLSearchParams(location.search);
+    let id = params.get('id');
+
+    // 2. Если нет — из Telegram WebApp
+    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (!id && tgUser?.id) {
+        id = String(tgUser.id);
     }
-  }
-  if (!MY_ID) {
-    document.body.innerHTML = '<div style="padding:40px;font-size:18px;text-align:center">⚠️ Открой приложение через кнопку в боте.</div>';
-    throw new Error('No user id');
-  }
-})();
+
+    // 3. Если всё равно нет — показать понятное сообщение вместо краша
+    if (!id) {
+        document.body.innerHTML = `
+            <div style="padding:40px 20px;text-align:center;color:#fff;font-family:Arial">
+                <h2>⚠️ Откройте через Telegram</h2>
+                <p>Это приложение работает только внутри Telegram.</p>
+                <p>Вернитесь в бота и нажмите кнопку <b>🚀 Sever Tech</b>.</p>
+            </div>`;
+        throw new Error('No user id — open via Telegram bot button');
+    }
+
+    // 4. Возвращаем user — с fallback на данные из Telegram
+    return {
+        id: parseInt(id),
+        first_name: tgUser?.first_name || params.get('name') || 'Гость',
+        username:   tgUser?.username   || '',
+        // ... остальные поля, как было
+    };
+}
 
 // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
 let cart = [];
