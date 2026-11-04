@@ -19,6 +19,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: all .3s; z-index: 2000; box-shadow: 0 10px 30px rgba(74,134,255,.4); max-width: 88vw; text-align: center; display: flex; align-items: center; gap: 8px; justify-content: center; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast .toast-icon { font-size: 18px; }
+.toast.success { background: linear-gradient(135deg, var(--success), #27ae60); }
+.toast.error { background: linear-gradient(135deg, var(--danger), #c0392b); }
+.toast.warning { background: linear-gradient(135deg, #f39c12, #e67e22); }
+.toast.info { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
 .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(20,20,36,.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,.05); z-index: 50; }
 .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; opacity: .5; cursor: pointer; color: #fff; transition: all .3s; position: relative; }
 .nav-item.active { opacity: 1; color: var(--accent); transform: translateY(-2px); }
@@ -26,7 +30,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; position: relative; z-index: 1; animation: slideDown .5s ease-out; }
 @keyframes slideDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
 .header-left { display: flex; align-items: center; gap: 12px; }
-.avatar { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 0 20px rgba(74,134,255,.4); flex-shrink: 0; }
+.avatar { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 0 20px rgba(74,134,255,.4); flex-shrink: 0; overflow: hidden; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .title { font-size: 20px; font-weight: 800; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 #app-game .title { font-size: 22px; }
 .subtitle { font-size: 13px; opacity: .6; }
@@ -37,7 +42,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .icon-btn .badge.show { display: flex; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.85); z-index: 100; align-items: flex-end; backdrop-filter: blur(5px); }
 .modal.active { display: flex; animation: fadeIn .2s; }
-.modal-content { background: var(--card); width: 100%; border-radius: 24px 24px 0 0; padding: 24px; max-height: 90vh; overflow-y: auto; animation: slideUp .3s cubic-bezier(.2,.8,.2,1); }
+.modal-content { background: var(--card); width: 100%; border-radius: 24px 24px 0 0; padding: 24px; max-height: 90vh; overflow-y: auto; animation: slideUp .3s cubic-bezier(.2,.8,.2,1); pointer-events: auto; }
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -90,9 +95,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .card:active { transform: scale(.97); border-color: var(--accent); }
 .card .emoji { font-size: 32px; margin-bottom: 8px; height: 80px; display: flex; align-items: center; justify-content: center; }
 .card img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
-.card .label { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.card .label { font-size: 14px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card .price { font-size: 13px; opacity: .8; margin-bottom: 8px; color: var(--gold); font-weight: 700; }
-.card .card-fav { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: rgba(0,0,0,.4); backdrop-filter: blur(4px); border: none; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .15s; }
+.card .card-fav { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: rgba(0,0,0,.4); backdrop-filter: blur(4px); border: none; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .15s; z-index: 2; }
 .card .card-fav.active { color: var(--danger); }
 .card .card-fav:active { transform: scale(.85); }
 .btn-add { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: all .2s; }
@@ -125,6 +130,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .slots-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 .slot-btn { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 12px; color: #fff; font-size: 14px; cursor: pointer; text-align: left; transition: all .2s; }
 .slot-btn.selected { background: var(--accent); border-color: var(--accent); font-weight: 700; box-shadow: 0 0 15px rgba(74,134,255,.3); }
+.slot-btn:disabled { opacity: .35; cursor: not-allowed; }
 .geo-btn { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 12px; color: #fff; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; transition: all .2s; }
 .geo-btn.ok { background: #2ecc71; border-color: #2ecc71; font-weight: 700; }
 .skip-btn { background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; margin-top: 8px; text-decoration: underline; }
@@ -140,8 +146,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .ps-block { margin-bottom: 16px; }
 .ps-block label { display: block; font-size: 12px; text-transform: uppercase; opacity: .6; letter-spacing: 1px; margin-bottom: 8px; }
 .ps-colors { display: flex; gap: 10px; flex-wrap: wrap; }
-.color-chip { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: border .15s, transform .1s; background: #444; }
-.color-chip.selected { border-color: var(--accent); transform: scale(1.1); }
+.color-chip { width: 38px; height: 38px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all .15s; background: #444; box-shadow: 0 0 0 1px rgba(255,255,255,.1); }
+.color-chip.selected { border-color: var(--accent); transform: scale(1.1); box-shadow: 0 0 15px var(--accent); }
+.color-chip:active { transform: scale(.95); }
 .ps-specs { display: flex; flex-direction: column; gap: 6px; }
 .spec-row { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
 .spec-row span:first-child { opacity: .65; }
@@ -183,9 +190,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .mob-hp-fill { height: 100%; background: linear-gradient(90deg,#ff2a2a,#ff8a4a,#ffcc00); transition: width .2s ease; box-shadow: 0 0 20px rgba(255,74,74,.6); }
 .mob-info { font-size: 14px; opacity: .8; margin-top: 10px; font-weight: 600; position: relative; z-index: 2; }
 .stats-panel { display: flex; justify-content: space-around; margin-top: 16px; background: rgba(0,0,0,.3); border-radius: 14px; padding: 12px; position: relative; z-index: 2; }
-.stat-item { text-align: center; }
-.stat-value { font-size: 22px; font-weight: 900; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.stat-label { font-size: 11px; opacity: .6; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+.stat-item { text-align: center; flex: 1; }
+.stat-value { font-size: 20px; font-weight: 900; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.stat-label { font-size: 10px; opacity: .6; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
 .floating-text { position: absolute; font-weight: 900; font-size: 30px; pointer-events: none; animation: floatUp .9s cubic-bezier(.2,.8,.2,1) forwards; z-index: 100; text-shadow: 0 0 15px currentColor; }
 .crit-text { color: var(--gold); font-size: 40px; text-shadow: 0 0 25px var(--gold), 0 0 50px var(--danger); }
 @keyframes floatUp { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-90px) scale(1.6)} }
@@ -319,10 +326,60 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .recent-card { flex-shrink: 0; width: 90px; background: var(--card); border-radius: 12px; padding: 8px; text-align: center; cursor: pointer; }
 .recent-card .rc-img { font-size: 28px; height: 40px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
 .recent-card .rc-name { font-size: 10px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.toast.success { background: linear-gradient(135deg, var(--success), #27ae60); }
-.toast.error { background: linear-gradient(135deg, var(--danger), #c0392b); }
-.toast.warning { background: linear-gradient(135deg, #f39c12, #e67e22); }
-.toast.info { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+
+/* ===== НОВОЕ: БАННЕР РАБОЧИХ ЧАСОВ ===== */
+.wh-banner { background: linear-gradient(135deg, rgba(255,74,74,.15), rgba(255,138,74,.15)); border: 1px solid rgba(255,74,74,.4); border-radius: 14px; padding: 12px; margin-bottom: 12px; font-size: 13px; display: flex; gap: 10px; align-items: center; color: #fff; position: relative; z-index: 1; animation: fadeIn .3s; }
+.wh-banner .wh-ico { font-size: 22px; flex-shrink: 0; }
+.wh-banner b { color: var(--danger); }
+
+/* ===== НОВОЕ: КАТЕГОРИИ-ЛЕНТА ===== */
+.cat-feed { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0 12px; scrollbar-width: none; margin-bottom: 12px; position: relative; z-index: 1; }
+.cat-feed::-webkit-scrollbar { display: none; }
+.cat-chip { flex-shrink: 0; padding: 10px 16px; border-radius: 20px; background: var(--card); border: 1px solid rgba(255,255,255,.06); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .2s; display: flex; align-items: center; gap: 6px; }
+.cat-chip.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: transparent; box-shadow: 0 5px 20px rgba(74,134,255,.4); color: #fff; }
+.cat-chip:active { transform: scale(.95); }
+
+/* ===== НОВОЕ: ПЕРЕЛИСТЫВАНИЕ КАРТОЧЕК ===== */
+.ps-carousel { position: relative; margin-bottom: 16px; }
+.ps-carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 100%; display: flex; justify-content: space-between; padding: 0 6px; pointer-events: none; }
+.ps-nav-btn { pointer-events: auto; width: 42px; height: 42px; border-radius: 50%; background: rgba(0,0,0,.65); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.15); color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity .2s, transform .1s; }
+.ps-nav-btn:active { transform: scale(.9); }
+.ps-nav-btn:disabled { opacity: .25; cursor: not-allowed; }
+.ps-counter { font-size: 11px; opacity: .6; margin-bottom: 8px; text-align: center; }
+
+/* ===== НОВОЕ: УДАЛЕНИЕ ИЗ КОРЗИНЫ + ОЧИСТКА ===== */
+.cart-item .ci-actions { display: flex; flex-direction: row; gap: 6px; align-items: center; flex-shrink: 0; }
+.cart-item .ci-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.05); color: var(--text); font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+.cart-item .ci-btn:active { transform: scale(.9); }
+.cart-item .ci-qty { min-width: 22px; text-align: center; font-weight: 800; font-size: 14px; }
+.cart-item .ci-del { background: rgba(255,74,74,.15); border: 1px solid rgba(255,74,74,.3); color: var(--danger); border-radius: 8px; padding: 8px 10px; font-size: 15px; font-weight: 600; cursor: pointer; line-height: 1; transition: transform .1s; }
+.cart-item .ci-del:active { transform: scale(.9); }
+.cart-clear { background: rgba(255,74,74,.1); border: 1px solid rgba(255,74,74,.3); color: var(--danger); border-radius: 10px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 12px; transition: transform .1s; }
+.cart-clear:active { transform: scale(.98); }
+
+/* ===== НОВОЕ: ПРОМО-ИНВЕНТАРЬ ===== */
+.promo-inv-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,.05); }
+.promo-inv-code { font-family: 'SF Mono', 'Courier New', monospace; font-size: 15px; font-weight: 800; color: var(--gold); letter-spacing: .5px; }
+.promo-inv-disc { background: rgba(255,204,0,.15); color: var(--gold); padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.promo-inv-status { font-size: 11px; opacity: .6; margin-top: 2px; }
+
+/* ===== НОВОЕ: БАФФЫ В КЛИКЕРЕ ===== */
+.buffs-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 10px; min-height: 22px; position: relative; z-index: 2; }
+.buff-chip { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; background: linear-gradient(135deg, rgba(255,204,0,.2), rgba(255,138,74,.2)); border: 1px solid rgba(255,204,0,.4); color: var(--gold); animation: comboPulse 1s infinite; }
+
+/* ===== НОВОЕ: НИКИ В ЛИДЕРБОРДЕ ===== */
+.lb-item .lb-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.lb-item .lb-name { font-size: 11px; opacity: .6; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ===== НОВОЕ: МОДАЛКА НАСТРОЕК ===== */
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.05); gap: 12px; }
+.settings-row:last-child { border-bottom: none; }
+.settings-row .sr-label { font-size: 14px; font-weight: 600; }
+.settings-row .sr-desc { font-size: 12px; opacity: .6; margin-top: 2px; }
+.settings-toggle { width: 50px; height: 28px; border-radius: 14px; background: rgba(255,255,255,.1); border: none; cursor: pointer; position: relative; transition: background .2s; flex-shrink: 0; padding: 0; }
+.settings-toggle.on { background: var(--accent); }
+.settings-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.settings-toggle.on::after { transform: translateX(22px); }
 </style>
 </head>
 <body>
@@ -330,6 +387,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <div id="offline-banner">📴 Нет соединения — проверьте интернет</div>
 <div id="ptr-indicator">↓</div>
 
+<!-- ===== ОНБОРДИНГ ===== -->
 <div id="onboarding">
   <div class="onb-slide" data-slide="0">
     <div class="onb-icon">🛍</div>
@@ -357,6 +415,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
+<!-- ===== ЗАСТАВКА ===== -->
 <div id="splash">
   <div class="stars-bg"></div>
   <div class="splash-inner">
@@ -385,35 +444,35 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
+<!-- ===== МАГАЗИН ===== -->
 <div id="app-shop" class="screen">
   <div class="bg-glow"></div>
 
+  <!-- КАТАЛОГ -->
   <div id="screen-catalog">
     <div class="header">
       <div class="header-left">
-        <div class="avatar">🎧</div>
+        <div class="avatar" id="user-avatar">👤</div>
         <div>
           <div class="title">Sever Tech Shop</div>
           <div class="subtitle" id="user-name">Покупатель</div>
         </div>
       </div>
       <div class="header-actions">
-        <button class="icon-btn" onclick="openWishlist()" title="Избранное">
-          ❤️<span class="badge" id="wishlist-badge"></span>
-        </button>
-        <button class="icon-btn" onclick="openCartPreview()" title="Корзина">
-          🛒<span class="badge" id="cart-badge"></span>
-        </button>
+        <button class="icon-btn" onclick="openWishlist()" title="Избранное">❤️<span class="badge" id="wishlist-badge"></span></button>
+        <button class="icon-btn" onclick="openCartPreview()" title="Корзина">🛒<span class="badge" id="cart-badge"></span></button>
       </div>
     </div>
+
+    <!-- Баннер рабочих часов -->
+    <div id="wh-banner-container"></div>
+
     <div class="search-bar">
       <div class="search-input-wrap">
         <span class="search-icon">🔍</span>
         <input type="text" id="search-input" placeholder="Поиск по каталогу..." oninput="onSearchInput(this.value)">
       </div>
-      <button class="filter-btn" id="filter-btn" onclick="openFilters()">
-        ⚙️<span class="filter-dot"></span>
-      </button>
+      <button class="filter-btn" id="filter-btn" onclick="openFilters()">⚙️<span class="filter-dot"></span></button>
     </div>
     <div class="filter-row" id="filter-row" style="display:none">
       <div class="filter-chip active" data-sort="default" onclick="setSort('default', this)">По умолчанию</div>
@@ -425,9 +484,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <h3 style="font-size:14px;opacity:.7;margin-bottom:8px">👁 Недавно смотрели</h3>
       <div class="recent-row" id="recent-row"></div>
     </div>
-    <div class="category-list" id="category-list"></div>
+
+    <!-- Лента категорий -->
+    <h3 style="font-size:14px;opacity:.7;margin-bottom:8px;position:relative;z-index:1">📂 Категории</h3>
+    <div class="cat-feed" id="cat-feed"></div>
+    <div id="catalog-content"></div>
+
+    <!-- Скрытый fallback -->
+    <div class="category-list" id="category-list" style="display:none"></div>
   </div>
 
+  <!-- ТОВАРЫ КАТЕГОРИИ -->
   <div id="screen-products" style="display:none">
     <button class="back-btn" onclick="shopShowCatalog()">← Назад</button>
     <div class="header" style="margin-bottom:12px">
@@ -438,20 +505,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         </div>
       </div>
       <div class="header-actions">
-        <button class="icon-btn" onclick="openCartPreview()">
-          🛒<span class="badge" id="cart-badge-2"></span>
-        </button>
+        <button class="icon-btn" onclick="openCartPreview()">🛒<span class="badge" id="cart-badge-2"></span></button>
       </div>
     </div>
     <div class="grid" id="product-grid"></div>
   </div>
 
+  <!-- ПОИСК -->
   <div id="screen-search" style="display:none">
-    <button class="back-btn" onclick="shopShowCatalog()">← Назад</button>
-    <h2 style="margin-bottom:12px">Результаты поиска</h2>
-    <div class="grid" id="search-grid"></div>
+  <button class="back-btn" onclick="shopShowCatalog()">← Назад</button>
+  <div class="search-bar" style="margin-top:8px">
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input-2" placeholder="Поиск по каталогу..." oninput="onSearchInput2(this.value)">
+    </div>
   </div>
+  <h2 style="margin-bottom:12px" id="search-title">Результаты поиска</h2>
+  <div class="grid" id="search-grid"></div>
+</div>
 
+  <!-- ПРОФИЛЬ -->
   <div id="screen-profile" style="display:none">
     <div class="profile-card">
       <h2 id="profile-name">Покупатель</h2>
@@ -473,11 +546,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
     <div class="profile-game">
       <div class="pg-header"><span>🎮 Кликер</span><span class="pg-level" id="pg-level">Ур. 1</span></div>
-      <div class="pg-mob" onclick="profileHit(event)">
-        <div id="pg-mob-emoji">👤</div>
-        <div class="pg-hp-bar"><div class="pg-hp-fill" id="pg-hp-fill" style="width:100%"></div></div>
-        <div class="pg-hp-text" id="pg-hp-text">HP: 100 / 100</div>
-      </div>
+      <div class="pg-mob" onclick="profileHit(event)" style="position:relative;">
+  <div style="position:relative; display:inline-block;">
+    <div id="pg-mob-emoji" style="font-size:64px; line-height:1;">🐺</div>
+    <div id="pg-hero-mini" style="position:absolute; right:-14px; bottom:-4px; font-size:24px; filter:drop-shadow(0 0 8px var(--accent));">👤</div>
+  </div>
+  <div class="pg-hp-bar"><div class="pg-hp-fill" id="pg-hp-fill" style="width:100%"></div></div>
+  <div class="pg-hp-text" id="pg-hp-text">HP: 100 / 100</div>
+</div>
+      
       <div class="pg-stats">
         <div><b id="pg-xp">0</b><small>XP</small></div>
         <div><b id="pg-power">1</b><small>Урон</small></div>
@@ -490,6 +567,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <span class="menu-badge" id="ach-count">0</span>
     </button>
     <button class="menu-btn" onclick="openWishlist()"><span class="menu-icon">❤️</span>Избранное<span class="menu-badge" id="wishlist-count-menu" style="display:none">0</span></button>
+    <button class="menu-btn" onclick="openPromoInventory()"><span class="menu-icon">🎟</span>Мои промокоды<span class="menu-badge" id="promo-count-menu" style="display:none">0</span></button>
     <button class="menu-btn" onclick="loadMyOrders()"><span class="menu-icon">📦</span>Мои заказы</button>
     <div id="orders-filters" style="display:none">
       <div class="orders-filter">
@@ -503,9 +581,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <button class="menu-btn" onclick="openChat('support', 'Поддержка')"><span class="menu-icon">💬</span>Поддержка</button>
     <button class="menu-btn" onclick="showPromos()"><span class="menu-icon">🎁</span>Акции</button>
     <button class="menu-btn" onclick="showReferral()"><span class="menu-icon">🔗</span>Пригласить друга</button>
-    <button class="menu-btn" onclick="showToast('FAQ скоро появится', 'info')"><span class="menu-icon">❓</span>FAQ</button>
+    <button class="menu-btn" onclick="openSettings()"><span class="menu-icon">⚙️</span>Настройки</button>
   </div>
 
+  <!-- ЧАТ -->
   <div id="screen-chat" style="display:none">
     <button class="back-btn" onclick="backToProfile()">← Назад</button>
     <h2 id="chat-title" style="margin-bottom:16px">Чат</h2>
@@ -519,6 +598,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
+<!-- ===== КЛИКЕР ===== -->
 <div id="app-game" class="screen">
   <div class="bg-particles"></div>
   <button class="sound-toggle" id="sound-toggle" onclick="toggleSound()">🔊</button>
@@ -526,6 +606,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div>
       <div class="title">👆 Кликер</div>
       <div class="subtitle" id="game-user-name">Загрузка…</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="openPromoInventory()" title="Промокоды">🎟<span class="badge" id="promo-badge"></span></button>
     </div>
   </div>
   <div id="tab-game" class="tab-content" style="position:relative;z-index:1">
@@ -541,10 +624,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="click-area" onclick="hitMob(event)"><div id="mob-container"></div></div>
       <div class="mob-hp-bar"><div class="mob-hp-fill" id="mob-hp-fill" style="width:100%"></div></div>
       <div class="mob-info" id="mob-info">HP: 100 / 100</div>
+      <div class="buffs-row" id="buffs-row"></div>
       <div class="stats-panel">
         <div class="stat-item"><div class="stat-value" id="clicker-xp">0</div><div class="stat-label">XP</div></div>
         <div class="stat-item"><div class="stat-value" id="clicker-power">1</div><div class="stat-label">Урон</div></div>
         <div class="stat-item"><div class="stat-value" id="clicker-crit">15%</div><div class="stat-label">Крит</div></div>
+        <div class="stat-item"><div class="stat-value" id="clicker-autodmg">0</div><div class="stat-label">Авто</div></div>
       </div>
     </div>
   </div>
@@ -557,7 +642,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div style="flex:1">
         <div style="font-weight:700;font-size:15px">Улучшить Автоклик</div>
         <div style="font-size:12px;opacity:.7;margin-top:2px">+5 XP в секунду к пассивному доходу</div>
-        <div class="item-stats" style="color:var(--gold)">Текущий уровень: <b id="auto-level">0</b></div>
+        <div class="item-stats" style="color:var(--gold)">Уровень: <b id="auto-level">0</b> · +<span id="auto-passive">0</span> XP/сек</div>
       </div>
       <button class="btn-buy" onclick="upgradeAuto()" style="background:var(--gold);color:#000" id="btn-auto"><span id="auto-cost">5000</span> XP</button>
     </div>
@@ -593,16 +678,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div style="margin-top:16px;font-size:12px;opacity:.6;text-align:center">* При перерождении сбрасываются: XP, предметы и уровень мобов.</div>
   </div>
   <div class="tabs">
-    <div class="tab active" onclick="gameSwitchTab('game',this)">⚔️</div>
-    <div class="tab" onclick="gameSwitchTab('shop',this)">🏪</div>
-    <div class="tab" onclick="gameSwitchTab('hero',this)">👤</div>
-    <div class="tab" onclick="gameSwitchTab('quests',this)">📜<span class="tab-dot" id="bonus-dot"></span></div>
-    <div class="tab" onclick="gameSwitchTab('prestige',this)">✨</div>
+    <div class="tab active" data-tab="game" onclick="gameSwitchTab('game',this)">⚔️</div>
+    <div class="tab" data-tab="shop" onclick="gameSwitchTab('shop',this)">🏪</div>
+    <div class="tab" data-tab="hero" onclick="gameSwitchTab('hero',this)">👤</div>
+    <div class="tab" data-tab="quests" onclick="gameSwitchTab('quests',this)">📜<span class="tab-dot" id="bonus-dot"></span></div>
+    <div class="tab" data-tab="prestige" onclick="gameSwitchTab('prestige',this)">✨</div>
   </div>
   <h3 style="margin:20px 0 10px">🏆 Топ-10 недели</h3>
   <div id="leaderboard-list"><p style="text-align:center;opacity:.7">Загрузка...</p></div>
 </div>
 
+<!-- ===== BOTTOM NAV ===== -->
 <div class="bottom-nav" id="main-nav" style="display:none">
   <div class="nav-item" onclick="goSplash()"><span class="nav-icon">🏠</span>Главная</div>
   <div class="nav-item" id="nav-shop" onclick="goShop()"><span class="nav-icon">🛍</span>Магазин</div>
@@ -610,6 +696,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   <div class="nav-item" id="nav-prof" onclick="shopShowProfile()"><span class="nav-icon">👤</span>Профиль</div>
 </div>
 
+<!-- ===== МОДАЛКА: КОРЗИНА ===== -->
 <div class="modal" id="cart-modal">
   <div class="modal-content">
     <div class="modal-header"><h2>Оформление</h2><button class="close-btn" onclick="closeCart()">×</button></div>
@@ -618,6 +705,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="progress"><div class="progress-fill" id="free-ship-fill" style="width:0%"></div></div>
     </div>
     <div id="cart-items"></div>
+    <button class="cart-clear" onclick="clearCart()">🗑 Очистить корзину</button>
     <div class="cart-total" id="cart-total">Итого: 0 ₽</div>
     <div class="input-group"><label>Имя</label><input type="text" id="order-name" placeholder="Иван"></div>
     <div class="input-group"><label>Телефон</label><input type="tel" id="order-phone" placeholder="+7 999 123-45-67"></div>
@@ -634,10 +722,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
+<!-- ===== МОДАЛКА: ТОВАР (с перелистыванием) ===== -->
 <div class="modal" id="product-modal">
   <div class="modal-content product-sheet">
     <div class="modal-header"><span></span><button class="close-btn" onclick="closeProductModal()">×</button></div>
-    <div class="ps-photo" id="ps-photo">📦</div>
+    <div class="ps-carousel">
+      <div class="ps-counter" id="ps-counter">— / —</div>
+      <div class="ps-photo" id="ps-photo">📦</div>
+      <div class="ps-carousel-nav">
+        <button class="ps-nav-btn" id="ps-prev" onclick="prevProduct()">←</button>
+        <button class="ps-nav-btn" id="ps-next" onclick="nextProduct()">→</button>
+      </div>
+    </div>
     <h2 class="ps-name" id="ps-name"></h2>
     <div class="ps-price-row">
       <span class="ps-price" id="ps-price"></span>
@@ -654,7 +750,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <label>Отзывы</label>
       <div class="reviews-list" id="ps-reviews-list"></div>
     </div>
-    <div class="ps-block" id="ps-similar-block" style="display:none">
+    <div id="ps-similar-block" class="ps-block" style="display:none">
       <label>Похожие товары</label>
       <div class="similar-row" id="ps-similar-row"></div>
     </div>
@@ -672,6 +768,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
+<!-- ===== МОДАЛКА: ИЗБРАННОЕ ===== -->
 <div class="modal" id="wishlist-modal">
   <div class="modal-content">
     <div class="modal-header"><h2>❤️ Избранное</h2><button class="close-btn" onclick="closeWishlist()">×</button></div>
@@ -679,6 +776,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
+<!-- ===== МОДАЛКА: ПРЕВЬЮ КОРЗИНЫ ===== -->
 <div class="modal" id="cart-preview-modal">
   <div class="modal-content">
     <div class="modal-header"><h2>🛒 Корзина</h2><button class="close-btn" onclick="closeCartPreview()">×</button></div>
@@ -687,6 +785,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
+<!-- ===== МОДАЛКА: ОТЗЫВ ===== -->
 <div class="modal" id="review-modal">
   <div class="modal-content">
     <div class="modal-header"><h2>Оставить отзыв</h2><button class="close-btn" onclick="closeReviewModal()">×</button></div>
@@ -702,6 +801,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
+<!-- ===== МОДАЛКА: ДОСТИЖЕНИЯ ===== -->
 <div class="modal" id="achievements-modal">
   <div class="modal-content">
     <div class="modal-header"><h2>🏆 Достижения</h2><button class="close-btn" onclick="closeAchievements()">×</button></div>
@@ -709,9 +809,55 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   </div>
 </div>
 
+<!-- ===== МОДАЛКА: ПРОМО-ИНВЕНТАРЬ ===== -->
+<div class="modal" id="promo-inventory-modal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>🎟 Мои промокоды</h2><button class="close-btn" onclick="closePromoInventory()">×</button></div>
+    <p style="font-size:13px;opacity:.7;margin-bottom:12px">Падают с боссов, за квесты и достижения.</p>
+    <div id="promo-inventory-content"></div>
+  </div>
+</div>
+
+<!-- ===== МОДАЛКА: НАСТРОЙКИ ===== -->
+<div class="modal" id="settings-modal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>⚙️ Настройки</h2><button class="close-btn" onclick="closeSettings()">×</button></div>
+    <div class="settings-row">
+      <div>
+        <div class="sr-label">🔊 Звук в кликере</div>
+        <div class="sr-desc">Звуки ударов и покупок</div>
+      </div>
+      <button class="settings-toggle" id="settings-sound-toggle" onclick="toggleSound();syncSettingsToggle()"></button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="sr-label">📳 Вибрация</div>
+        <div class="sr-desc">Тактильный отклик</div>
+      </div>
+      <button class="settings-toggle" id="settings-haptic-toggle" onclick="toggleHaptic()"></button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="sr-label">🗑 Очистить корзину</div>
+        <div class="sr-desc">Удалить все товары</div>
+      </div>
+      <button class="cart-clear" style="width:auto;margin:0;padding:8px 14px" onclick="clearCart();closeSettings()">Очистить</button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="sr-label">💔 Очистить избранное</div>
+        <div class="sr-desc">Убрать всё из ❤️</div>
+      </div>
+      <button class="cart-clear" style="width:auto;margin:0;padding:8px 14px" onclick="clearWishlist();closeSettings()">Очистить</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
-<!-- ===== §1 ОБЩИЙ INIT ===== -->
 <script>
+/* ============================================================
+   §1 ОБЩИЙ INIT И УТИЛИТЫ
+   ============================================================ */
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
@@ -722,9 +868,9 @@ const _params = new URLSearchParams(location.search);
 const API_URL = _params.get('api') || 'https://2.26.22.148.nip.io';
 
 function imgUrl(raw) {
-    if (!raw) return null;
-    if (/^https?:\/\//.test(raw)) return raw;
-    return `${API_URL}/api/image/${raw}`;
+  if (!raw) return null;
+  if (/^https?:\/\//.test(raw)) return raw;
+  return `${API_URL}/api/image/${raw}`;
 }
 
 let user = null;
@@ -747,9 +893,34 @@ let MY_ID = null;
   }
 })();
 
-// ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ КОРЗИНЫ =====
+// ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
 let cart = [];
 let _productsCache = {};
+
+// ===== РАБОЧИЕ ЧАСЫ =====
+// ===== РАБОЧИЕ ЧАСЫ (синхронизация с сервером по TZ) =====
+const WORK_HOURS = { start: 10, end: 22, label: '10:00–22:00', isOpen: true };
+function isWorkingNow() { return WORK_HOURS.isOpen; }
+async function syncWorkingHours() {
+  try {
+    const r = await fetch(API_URL + '/api/working-hours', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const d = await r.json();
+    if (d && d.ok) {
+      WORK_HOURS.start = d.start;
+      WORK_HOURS.end = d.end;
+      WORK_HOURS.label = d.label;
+      WORK_HOURS.isOpen = !!d.is_open;
+      renderWorkingHoursBanner();
+      if (typeof updateCartUI === 'function') updateCartUI();
+    }
+  } catch (e) {}
+}
+function renderWorkingHoursBanner() {
+  const box = document.getElementById('wh-banner-container');
+  if (!box) return;
+  if (isWorkingNow()) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="wh-banner"><div class="wh-ico">🌙</div><div><b>Магазин закрыт.</b> Работаем ${WORK_HOURS.label}. Оформление недоступно.</div></div>`;
+}
 
 // ===== TOAST =====
 function showToast(msg, type = 'info') {
@@ -762,7 +933,9 @@ function showToast(msg, type = 'info') {
 }
 
 // ===== HAPTIC =====
+let hapticEnabled = lsGet('haptic_enabled', true);
 function haptic(type = 'light') {
+  if (!hapticEnabled) return;
   try {
     if (!tg.HapticFeedback) return;
     if (type === 'light') tg.HapticFeedback.impactOccurred('light');
@@ -772,6 +945,12 @@ function haptic(type = 'light') {
     else if (type === 'error') tg.HapticFeedback.notificationOccurred('error');
     else if (type === 'warning') tg.HapticFeedback.notificationOccurred('warning');
   } catch (e) {}
+}
+function toggleHaptic() {
+  hapticEnabled = !hapticEnabled;
+  lsSet('haptic_enabled', hapticEnabled);
+  syncSettingsToggle();
+  haptic('light');
 }
 
 // ===== ESCAPE / FORMAT =====
@@ -798,26 +977,31 @@ function getMaxQtyForProduct(productId, variant = '') {
     .reduce((s, it) => s + it.quantity, 0);
   return Math.max(0, Math.min(stock - otherVariantsQty, hardMax));
 }
-
 function getCartQty(productId, variant = '') {
   const item = cart.find(it => it.product_id === productId && (it.variant || '') === (variant || ''));
   return item ? item.quantity : 0;
 }
-
 function getCartQtyAllVariants(productId) {
   return cart.filter(it => it.product_id === productId).reduce((s, it) => s + it.quantity, 0);
 }
 
-// ===== ИМЕНА =====
+// ===== ИМЕНА + АВАТАР =====
 (function setNames() {
   const name = (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
-  const el1 = document.getElementById('user-name');
-  const el2 = document.getElementById('profile-name');
-  const el3 = document.getElementById('game-user-name');
-  if (el1) el1.textContent = name || 'Покупатель';
-  if (el2) el2.textContent = name || 'Покупатель';
-  if (el3) el3.textContent = user.first_name || 'Игрок';
+  const el1 = document.getElementById('user-name'); if (el1) el1.textContent = name || 'Покупатель';
+  const el2 = document.getElementById('profile-name'); if (el2) el2.textContent = name || 'Покупатель';
+  const el3 = document.getElementById('game-user-name'); if (el3) el3.textContent = user.first_name || 'Игрок';
 })();
+
+function applyUserAvatar() {
+  const av = document.getElementById('user-avatar');
+  if (!av) return;
+  if (user && user.photo_url) {
+    av.innerHTML = `<img src="${user.photo_url}" onerror="this.parentNode.textContent='👤'">`;
+  } else if (user && user.first_name) {
+    av.textContent = user.first_name.charAt(0).toUpperCase();
+  }
+}
 
 // ===== LOCAL STORAGE =====
 function lsGet(key, def) {
@@ -908,16 +1092,24 @@ async function doRefresh() {
     if (typeof loadCategories === 'function' && document.getElementById('screen-catalog').style.display !== 'none') {
       await loadCategories();
     }
+    if (typeof loadCategoryFeed === 'function' && document.getElementById('cat-feed')) {
+      await loadCategoryFeed();
+    }
   } else if (currentScreen === 'app-game') {
     if (typeof loadStatus === 'function') await loadStatus();
   }
 }
 
-// ===== ХОТКЕИ =====
+// ===== ХОТКЕИ + МОДАЛКИ ПО КЛИКУ НА ФОН =====
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
   }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.modal').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
+  });
 });
 
 // ===== ЗВУК =====
@@ -925,10 +1117,29 @@ let soundEnabled = lsGet('sound_enabled', true);
 function toggleSound() {
   soundEnabled = !soundEnabled;
   lsSet('sound_enabled', soundEnabled);
-  document.getElementById('sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
+  const st = document.getElementById('sound-toggle');
+  if (st) st.textContent = soundEnabled ? '🔊' : '🔇';
+  syncSettingsToggle();
   haptic('light');
 }
 function getSoundToggleIcon() { return soundEnabled ? '🔊' : '🔇'; }
+
+// ===== НАСТРОЙКИ =====
+function syncSettingsToggle() {
+  const snd = document.getElementById('settings-sound-toggle');
+  const hap = document.getElementById('settings-haptic-toggle');
+  if (snd) snd.classList.toggle('on', soundEnabled);
+  if (hap) hap.classList.toggle('on', hapticEnabled);
+}
+function openSettings() {
+  syncSettingsToggle();
+  const m = document.getElementById('settings-modal');
+  if (m) m.classList.add('active');
+}
+function closeSettings() {
+  const m = document.getElementById('settings-modal');
+  if (m) m.classList.remove('active');
+}
 
 // ===== СКЕЛЕТОНЫ =====
 function skeletonGrid(count = 4) {
@@ -968,6 +1179,14 @@ function updateWishlistBadge() {
   const b2 = document.getElementById('wishlist-count-menu');
   if (b1) { b1.textContent = count; b1.classList.toggle('show', count > 0); }
   if (b2) { b2.textContent = count; b2.style.display = count > 0 ? 'inline-block' : 'none'; }
+}
+function clearWishlist() {
+  if (!confirm('Очистить избранное?')) return;
+  wishlist = [];
+  lsSet('wishlist_' + MY_ID, wishlist);
+  updateWishlistBadge();
+  renderWishlistCard();
+  showToast('Избранное очищено', 'success');
 }
 function renderWishlistCard() {
   const container = document.getElementById('wishlist-content');
@@ -1019,13 +1238,49 @@ function renderRecent() {
   `).join('');
 }
 
-// ===== БЕЙДЖ КОРЗИНЫ =====
+// ===== КОРЗИНА: БЕЙДЖ + СОХРАНЕНИЕ + СИНХРОН =====
 function updateCartBadge() {
   const count = cart.reduce((s, i) => s + i.quantity, 0);
   ['cart-badge', 'cart-badge-2'].forEach(id => {
     const b = document.getElementById(id);
     if (b) { b.textContent = count; b.classList.toggle('show', count > 0); }
   });
+}
+function saveCart() {
+  lsSet('cart_' + MY_ID, cart);
+  updateCartBadge();
+  syncCartToServer();
+}
+let _syncCartTimer = null;
+function syncCartToServer() {
+  clearTimeout(_syncCartTimer);
+  _syncCartTimer = setTimeout(async () => {
+    try {
+      await fetch(API_URL + '/api/cart/sync', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},
+        body: JSON.stringify({
+          user_id: MY_ID,
+          items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity, variant: i.variant || '' }))
+        })
+      });
+    } catch (e) {}
+  }, 800);
+}
+function loadCart() { cart = lsGet('cart_' + MY_ID, []); updateCartBadge(); }
+async function loadCartFromServer() {
+  try {
+    const r = await fetch(API_URL + '/api/cart/' + MY_ID, { headers: {'ngrok-skip-browser-warning':'true'} });
+    const items = await r.json();
+    if (items && items.length && (!cart || cart.length === 0)) {
+      cart = items.map(i => ({
+        product_id: i.product_id, name: i.name, price: i.price,
+        variant: i.variant || '', quantity: i.quantity
+      }));
+      lsSet('cart_' + MY_ID, cart);
+      updateCartBadge();
+    }
+  } catch (e) {}
 }
 
 // ===== ПРЕВЬЮ КОРЗИНЫ =====
@@ -1147,39 +1402,8 @@ function onSearchInput(val) {
   searchDebounce = setTimeout(() => doSearch(val), 350);
 }
 
-async function doSearch(query) {
-  if (!query || query.trim().length < 2) {
-    if (currentScreen === 'app-shop') shopSwitchScreen('screen-catalog');
-    return;
-  }
-  shopSwitchScreen('screen-search');
-  const grid = document.getElementById('search-grid');
-  grid.innerHTML = skeletonGrid(4);
-  try {
-    const results = Object.values(_productsCache).filter(p =>
-      p.name.toLowerCase().includes(query.toLowerCase()) ||
-      (p.description || '').toLowerCase().includes(query.toLowerCase())
-    );
-    if (results.length === 0) {
-      grid.innerHTML = `<div style="grid-column:span 2"><div class="empty-state"><div class="empty-icon">🔍</div><h3>Ничего не найдено</h3><p>Попробуйте другой запрос</p></div></div>`;
-      return;
-    }
-    renderProductGrid(grid, results);
-  } catch (e) {
-    grid.innerHTML = '<p style="grid-column:span 2;text-align:center;color:red">Ошибка поиска</p>';
-  }
-}
 
-function setSort(sort, el) {
-  currentSort = sort;
-  document.querySelectorAll('.filter-row .filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  haptic('light');
-  if (window._lastProducts) {
-    const grid = document.getElementById('product-grid');
-    if (grid) renderProductGrid(grid, window._lastProducts);
-  }
-}
+    
 
 function sortProducts(arr) {
   const s = [...arr];
@@ -1191,8 +1415,24 @@ function sortProducts(arr) {
 
 function openFilters() {
   haptic('light');
-  document.getElementById('filter-row').style.display = 'flex';
-  document.getElementById('filter-btn').classList.add('has-filters');
+  const row = document.getElementById('filter-row');
+  row.style.display = (row.style.display === 'none' || !row.style.display) ? 'flex' : 'none';
+}
+
+function setSort(sort, el) {
+  currentSort = sort;
+  document.querySelectorAll('.filter-row .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('filter-btn')
+    .classList.toggle('has-filters', sort !== 'default');   // ← точка по факту сортировки
+  haptic('light');
+  if (!window._lastProducts) return;
+  let grid = document.getElementById('search-grid');
+  if (document.getElementById('screen-products').style.display !== 'none')
+    grid = document.getElementById('product-grid');
+  else if (document.getElementById('screen-search').style.display === 'none')
+    grid = document.getElementById('catalog-grid');
+  if (grid) renderProductGrid(grid, window._lastProducts);
 }
 
 // ===== ПРОМО-ЧИПСЫ =====
@@ -1200,11 +1440,13 @@ async function loadPromoChips() {
   const container = document.getElementById('promo-chips');
   if (!container) return;
   try {
-    const r = await fetch(API_URL + '/api/promotions', { headers: { 'ngrok-skip-browser-warning': 'true' } });
-    const promos = await r.json();
-    if (!promos || promos.length === 0) { container.innerHTML = ''; return; }
-    container.innerHTML = promos.map(p => 
-      `<div class="promo-chip" onclick="applyPromoCode('${escapeHtml(p.title).toUpperCase()}')">🎁 ${escapeHtml(p.title)}</div>`
+    const r = await fetch(API_URL + '/api/promocodes/active?user_id=' + MY_ID, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const codes = await r.json();
+    if (!codes.length) { container.innerHTML = ''; return; }
+    container.innerHTML = codes.map(c =>
+      `<div class="promo-chip" onclick="applyPromoCode('${escapeHtml(c.code)}')">
+         🎟 ${escapeHtml(c.code)} · -${c.discount}%
+       </div>`
     ).join('');
   } catch (e) { container.innerHTML = ''; }
 }
@@ -1252,7 +1494,7 @@ function shareProduct() {
   }
 }
 
-// ===== ДВОЙНАЯ ЗАЩИТА =====
+// ===== ЗАЩИТА SUBMIT =====
 let submitLocked = false;
 function withSubmitLock(fn) {
   return async function(...args) {
@@ -1263,10 +1505,11 @@ function withSubmitLock(fn) {
   };
 }
 </script>
-
-<!-- ===== §2 РОУТЕР + ЗАСТАВКА ===== -->
 <script>
-const screens = ['splash','app-shop','app-game'];
+/* ============================================================
+   §2 РОУТЕР + ЗАСТАВКА
+   ============================================================ */
+const screens = ['splash', 'app-shop', 'app-game'];
 let currentScreen = 'splash';
 let gameInterval = null;
 let shopLoaded = false;
@@ -1285,14 +1528,14 @@ function setScreen(name) {
   if (name !== 'app-shop') document.getElementById('nav-prof')?.classList.remove('active');
   currentScreen = name;
 
-  if (name === 'app-game') {
-    if (!gameInterval) gameInterval = setInterval(() => {
+  // Автодамаг работает фоном всегда, после первого входа в игру
+  if (!gameInterval && (name === 'app-game' || name === 'app-shop')) {
+    gameInterval = setInterval(() => {
       if (typeof handleAutoClick === 'function') handleAutoClick();
+      if (typeof renderBuffs === 'function') renderBuffs();
     }, 2000);
-  } else if (gameInterval) {
-    clearInterval(gameInterval);
-    gameInterval = null;
   }
+  if (name === 'app-game' && typeof render === 'function' && typeof state !== 'undefined' && state.xp !== undefined) render();
 }
 
 function goSplash() { setScreen('splash'); haptic('light'); }
@@ -1301,21 +1544,23 @@ function goShop() {
   haptic('light');
   setScreen('app-shop');
   if (typeof shopSwitchScreen === 'function') shopSwitchScreen('screen-catalog');
-  if (!shopLoaded && typeof loadCategories === 'function') {
+  if (!shopLoaded && typeof loadCategoryFeed === 'function') {
     shopLoaded = true;
-    loadCategories();
+    loadCategoryFeed();
   }
 }
 
 function goGame() {
   haptic('light');
   setScreen('app-game');
-  document.getElementById('sound-toggle').textContent = getSoundToggleIcon();
+  const st = document.getElementById('sound-toggle');
+  if (st) st.textContent = getSoundToggleIcon();
   if (!gameLoaded && typeof loadStatus === 'function') {
     gameLoaded = true;
     if (typeof initAudio === 'function') initAudio();
     loadStatus();
     loadLeaderboard();
+    loadPromosInGame();
   }
 }
 
@@ -1336,11 +1581,18 @@ fillSplashUser();
 setScreen('splash');
 renderRecent();
 updateWishlistBadge();
+loadCart();
+loadCartFromServer();
+applyUserAvatar();
+syncWorkingHours();
+setInterval(syncWorkingHours, 5 * 60 * 1000);
 setTimeout(() => { try { startOnboarding(); } catch(e){} }, 800);
 </script>
 
-<!-- ===== §3 МАГАЗИН ===== -->
 <script>
+/* ============================================================
+   §3 МАГАЗИН: категории, товары, поиск, заказы, чат, корзина
+   ============================================================ */
 let currentChatType = null;
 let chatInterval = null;
 let currentGeo = { lat: 0, lon: 0 };
@@ -1350,7 +1602,9 @@ let currentReviewOrderId = null;
 let skipGeoFlag = false;
 let allOrdersCache = [];
 let currentOrdersFilter = 'all';
+let allProductsCache = [];
 
+// ===== ПЕРЕКЛЮЧЕНИЕ ЭКРАНОВ МАГАЗИНА =====
 function shopSwitchScreen(screenId) {
   ['screen-catalog','screen-products','screen-profile','screen-chat','screen-search'].forEach(id => {
     const el = document.getElementById(id);
@@ -1364,11 +1618,13 @@ function shopSwitchScreen(screenId) {
 function shopShowCatalog() {
   haptic('light');
   shopSwitchScreen('screen-catalog');
-  if (document.getElementById('category-list').innerHTML === '') loadCategories();
+  const catFeed = document.getElementById('cat-feed');
+  if (catFeed && catFeed.innerHTML === '' && typeof loadCategoryFeed === 'function') loadCategoryFeed();
 }
 
 async function shopShowProfile() {
   haptic('light');
+  setScreen('app-shop'); 
   shopSwitchScreen('screen-profile');
   document.getElementById('my-orders-list').innerHTML = '';
   await loadProfile();
@@ -1401,35 +1657,69 @@ async function loadProfile() {
   } catch (e) { console.error('profile:', e); }
 }
 
-// ===== КАТЕГОРИИ =====
-async function loadCategories() {
-  const list = document.getElementById('category-list');
-  list.innerHTML = skeletonList(4);
+// ===== КАТЕГОРИИ-ЛЕНТА =====
+async function loadCategoryFeed() {
+  const feed = document.getElementById('cat-feed');
+  if (!feed) return;
+  feed.innerHTML = '<div class="skeleton" style="width:100px;height:38px;border-radius:20px"></div>'.repeat(3);
   try {
-    const r = await fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } });
-    const categories = await r.json();
-    list.innerHTML = '';
-    if (categories.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><h3>Каталог пуст</h3><p>Скоро появятся товары</p></div>`;
+    const [rc, rp] = await Promise.all([
+      fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } }),
+      fetch(API_URL + '/api/products', { headers: { 'ngrok-skip-browser-warning': 'true' } })
+    ]);
+    const cats = await rc.json();
+    allProductsCache = await rp.json();
+    allProductsCache.forEach(p => { _productsCache[p.id] = p; });
+
+    feed.innerHTML = '';
+    if (!cats.length && !allProductsCache.length) {
+      feed.innerHTML = '<div class="empty-state" style="width:100%"><div class="empty-icon">📦</div><h3>Каталог пуст</h3></div>';
       return;
     }
-    categories.forEach((c, i) => {
-      const item = document.createElement('div');
-      item.className = 'category-item';
-      item.style.animationDelay = (i * 0.05) + 's';
-      item.innerHTML = `<span>${escapeHtml(c.name)}</span><span>→</span>`;
-      item.onclick = () => { haptic('light'); loadProductsByCategory(c.name); };
-      list.appendChild(item);
+    const chips = [{ name: '__all__', label: '🔥 Все' }, ...cats.map(c => ({ name: c.name, label: c.name }))];
+    chips.forEach((c, i) => {
+      const chip = document.createElement('div');
+      chip.className = 'cat-chip' + (i === 0 ? ' active' : '');
+      chip.textContent = c.label;
+      chip.onclick = () => {
+        haptic('light');
+        feed.querySelectorAll('.cat-chip').forEach(x => x.classList.remove('active'));
+        chip.classList.add('active');
+        renderFeedProducts(c.name === '__all__' ? null : c.name);
+      };
+      feed.appendChild(chip);
     });
+    renderFeedProducts(null);
   } catch (e) {
-    list.innerHTML = '<p style="text-align:center;color:var(--danger)">Ошибка сети</p>';
+    feed.innerHTML = '<p style="color:var(--danger);padding:10px">Ошибка загрузки</p>';
   }
 }
 
-// ===== ТОВАРЫ =====
+function renderFeedProducts(categoryName) {
+  const content = document.getElementById('catalog-content');
+  if (!content) return;
+  let list = allProductsCache;
+  let title = '🔥 Популярное';
+  if (categoryName) {
+    list = allProductsCache.filter(p => p.category === categoryName);
+    title = categoryName + ' · ' + list.length + ' товаров';
+  } else {
+    list = allProductsCache.slice(0, 20);
+  }
+  if (!list.length) {
+    content.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><h3>Пусто</h3></div>`;
+    return;
+  }
+  content.innerHTML = `<h3 style="font-size:14px;opacity:.7;margin-bottom:8px">${escapeHtml(title)}</h3><div class="grid" id="catalog-grid"></div>`;
+  const grid = document.getElementById('catalog-grid');
+  if (typeof renderProductGrid === 'function') renderProductGrid(grid, list);
+}
+
+// ===== СЕТКА ТОВАРОВ =====
 function renderProductGrid(grid, products) {
   grid.innerHTML = '';
   const sorted = sortProducts(products);
+  window._lastProducts = sorted;
   sorted.forEach((p, i) => {
     _productsCache[p.id] = p;
     const card = document.createElement('div');
@@ -1440,19 +1730,15 @@ function renderProductGrid(grid, products) {
     const isOutOfStock = stock <= 0;
 
     let stockLine = '';
-    if (isOutOfStock) {
-      stockLine = `<div style="color:var(--danger);font-size:11px;font-weight:700;margin-bottom:4px">Нет в наличии</div>`;
-    } else if (stock <= 3) {
-      stockLine = `<div style="color:var(--gold);font-size:11px;margin-bottom:4px">⚡ Осталось ${stock}</div>`;
-    }
+    if (isOutOfStock) stockLine = `<div style="color:var(--danger);font-size:11px;font-weight:700;margin-bottom:4px">Нет в наличии</div>`;
+    else if (stock <= 3) stockLine = `<div style="color:var(--gold);font-size:11px;margin-bottom:4px">⚡ Осталось ${stock}</div>`;
 
     const btnHtml = isOutOfStock
       ? `<button class="btn-add" disabled>Нет в наличии</button>`
       : `<button class="btn-add" id="btn-${p.id}">В корзину</button>`;
 
-        const imgHtml = p.image_url
-      ? `<img src="${imgUrl(p.image_url)}" loading="lazy" decoding="async"
-             onerror="this.style.display='none';this.parentElement.innerHTML='📦';">`
+    const imgHtml = p.image_url
+      ? `<img src="${imgUrl(p.image_url)}" loading="lazy" decoding="async" onerror="this.style.display='none';this.parentElement.innerHTML='📦';">`
       : '📦';
 
     card.innerHTML = `
@@ -1468,15 +1754,11 @@ function renderProductGrid(grid, products) {
     if (addBtn && !isOutOfStock) {
       addBtn.onclick = (e) => { e.stopPropagation(); quickAddById(p.id); };
     }
-        grid.appendChild(card);
+    grid.appendChild(card);
   });
 
-  // 🔥 Предзагрузка первых 4 картинок параллельно (ускоряет видимую часть)
   sorted.slice(0, 4).forEach(p => {
-    if (p.image_url) {
-      const img = new Image();
-      img.src = imgUrl(p.image_url);
-    }
+    if (p.image_url) { const img = new Image(); img.src = imgUrl(p.image_url); }
   });
 }
 
@@ -1501,48 +1783,329 @@ async function loadProductsByCategory(categoryName) {
   }
 }
 
+// ===== ПОИСК =====
+let _searchDebounce2 = null;
+function onSearchInput2(val) {
+  clearTimeout(_searchDebounce2);
+  _searchDebounce2 = setTimeout(() => {
+    const a = document.getElementById('search-input');
+    if (a) a.value = val;
+    doSearch(val);
+  }, 350);
+}
+
+async function doSearch(query) {
+  if (!query || query.trim().length < 2) {
+    if (currentScreen === 'app-shop') shopSwitchScreen('screen-catalog');
+    return;
+  }
+  shopSwitchScreen('screen-search');
+  const grid = document.getElementById('search-grid');
+  grid.innerHTML = skeletonGrid(4);
+  // синхронизируем оба поля
+  const a = document.getElementById('search-input');  if (a && a.value !== query) a.value = query;
+  const b = document.getElementById('search-input-2'); if (b && b.value !== query) b.value = query;
+  try {
+    const r = await fetch(
+      `${API_URL}/api/products/search?q=${encodeURIComponent(query.trim())}&limit=50`,
+      { headers: { 'ngrok-skip-browser-warning': 'true' } }
+    );
+    const results = await r.json();
+    results.forEach(p => { _productsCache[p.id] = p; });
+    const title = document.getElementById('search-title');
+    if (title) title.textContent = `Найдено: ${results.length}`;
+    if (!results.length) {
+      grid.innerHTML = `<div style="grid-column:span 2"><div class="empty-state"><div class="empty-icon">🔍</div><h3>Ничего не найдено</h3><p>Попробуйте другой запрос</p></div></div>`;
+      return;
+    }
+    renderProductGrid(grid, results);
+  } catch (e) {
+    grid.innerHTML = `<div style="grid-column:span 2"><div class="empty-state"><div class="empty-icon">🔍</div><h3>Ошибка поиска</h3></div></div>`;
+  }
+}
+
+// ===== БЫСТРОЕ ДОБАВЛЕНИЕ =====
 function quickAddById(id) {
   const p = _productsCache[id];
   if (!p) { showToast('Товар не найден', 'error'); return; }
-
   const stock = Math.max(0, parseInt(p.stock) || 0);
-  if (stock <= 0) {
-    showToast('Нет в наличии', 'error');
-    haptic('error');
-    return;
-  }
-
+    // Если у товара есть цвета — открываем карточку для выбора
+  if (p.colors && p.colors.length) { openProduct(id); return; }
+  if (stock <= 0) { showToast('Нет в наличии', 'error'); haptic('error'); return; }
   const existing = cart.find(it => it.product_id === id && !it.variant);
   const currentQty = existing ? existing.quantity : 0;
   const maxQty = getMaxQtyForProduct(id, '');
-
-  if (currentQty >= maxQty) {
-    showToast(`Максимум ${maxQty} шт · на складе ${stock}`, 'warning');
-    haptic('warning');
-    return;
-  }
-
+  if (currentQty >= maxQty) { showToast(`Максимум ${maxQty} шт · на складе ${stock}`, 'warning'); haptic('warning'); return; }
   haptic('medium');
   if (existing) existing.quantity++;
   else cart.push({ product_id: id, name: p.name, price: p.price, variant: '', quantity: 1 });
-
+  saveCart();
   updateCartUI();
   showToast('Добавлено в корзину', 'success');
-
   const btn = document.getElementById('btn-' + id);
   if (btn) {
     const newQty = getCartQtyAllVariants(id);
-    if (newQty >= maxQty) {
-      btn.textContent = `Макс. ${maxQty}`;
-      btn.classList.remove('added');
-      setTimeout(() => { btn.textContent = 'В корзину'; }, 1800);
+    btn.textContent = newQty >= maxQty ? `Макс. ${maxQty}` : 'Добавлено ✓';
+    btn.classList.add('added');
+    setTimeout(() => { btn.textContent = 'В корзину'; btn.classList.remove('added'); }, 1500);
+  }
+}
+
+// ===== КОРЗИНА: UI =====
+function updateCartUI() {
+  const itemsDiv = document.getElementById('cart-items');
+  if (!itemsDiv) return;
+  itemsDiv.innerHTML = '';
+  let total = 0, hasIssue = false;
+
+  // Считаем суммарное количество по каждому product_id (все варианты)
+const perProductQty = {};
+cart.forEach(it => {
+  perProductQty[it.product_id] = (perProductQty[it.product_id] || 0) + it.quantity;
+});
+
+cart.forEach((item, index) => {
+  total += item.price * item.quantity;
+  const p = _productsCache[item.product_id];
+  const stock = p ? Math.max(0, parseInt(p.stock) || 0) : Infinity;
+  const overLimit = p && perProductQty[item.product_id] > stock;
+  if (overLimit) hasIssue = true;
+
+    itemsDiv.innerHTML += `
+  <div class="cart-item ${overLimit ? 'over-limit' : ''}">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(item.name)}${item.variant ? ` <small style="opacity:.6">(${escapeHtml(item.variant)})</small>` : ''}</div>
+      <div style="font-size:12px;opacity:.7">${item.quantity} × ${fmtMoney(item.price)}</div>
+      ${overLimit ? `<div style="font-size:11px;color:var(--danger);margin-top:2px">⚠️ На складе ${stock} шт</div>` : ''}
+    </div>
+    <div class="ci-actions">
+      <button class="ci-btn" onclick="changeCartQty(${index},-1)">−</button>
+      <span class="ci-qty">${item.quantity}</span>
+      <button class="ci-btn" onclick="changeCartQty(${index},1)">+</button>
+      <button class="ci-btn ci-del" onclick="removeFromCart(${index})">🗑</button>
+    </div>
+  </div>`;
+  });
+  const totalEl = document.getElementById('cart-total');
+  if (totalEl) totalEl.textContent = 'Итого: ' + fmtMoney(total);
+  updateCartBadge();
+  updateFreeShipping();
+  const submitBtn = document.getElementById('submit-order-btn');
+  if (submitBtn) {
+    if (hasIssue) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⚠️ Превышен остаток — удалите лишнее';
+    } else if (!isWorkingNow()) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = '🔒 Магазин закрыт · ' + WORK_HOURS.label;
     } else {
-      btn.textContent = 'Добавлено ✓';
-      btn.classList.add('added');
-      setTimeout(() => { btn.textContent = 'В корзину'; btn.classList.remove('added'); }, 1500);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Оформить заказ';
     }
   }
 }
+function changeCartQty(index, delta) {
+  const item = cart[index];
+  if (!item) return;
+  haptic('light');
+  const p = _productsCache[item.product_id];
+  const stock = p ? Math.max(0, parseInt(p.stock) || 0) : Infinity;
+  const totalForProduct = cart
+    .filter(it => it.product_id === item.product_id)
+    .reduce((s, it) => s + it.quantity, 0);
+
+  if (delta > 0 && totalForProduct >= stock) {
+    showToast(`На складе только ${stock} шт`, 'warning'); haptic('warning'); return;
+  }
+  if (delta < 0 && item.quantity + delta <= 0) { removeFromCart(index); return; }
+  item.quantity = Math.max(1, item.quantity + delta);
+  saveCart();
+  updateCartUI();
+}
+function removeFromCart(index) {
+  haptic('medium');
+  cart.splice(index, 1);
+  saveCart();
+  updateCartUI();
+}
+function clearCart() {
+  if (!cart || !cart.length) { showToast('Корзина уже пуста', 'info'); return; }
+  if (!confirm('Очистить корзину?')) return;
+  cart = [];
+  saveCart();
+  updateCartUI();
+  showToast('Корзина очищена', 'success');
+  haptic('success');
+}
+
+function openCart() {
+  if (cart.length === 0) { showToast('Корзина пуста', 'warning'); return; }
+  haptic('light');
+  document.getElementById('cart-modal').classList.add('active');
+  updateCartUI();
+  loadSlots();
+  loadProfile();
+  loadPromoChips();
+  updateFreeShipping();
+
+  const pending = lsGet('pending_promo_' + MY_ID, '');
+  if (pending) {
+    const inp = document.getElementById('order-promo');
+    if (inp && !inp.value) inp.value = pending;
+    lsRemove('pending_promo_' + MY_ID);
+  }
+}
+
+function closeCart() { document.getElementById('cart-modal').classList.remove('active'); }
+
+// ===== СЛОТЫ =====
+async function loadSlots() {
+  const list = document.getElementById('slots-list');
+  if (!list) return;
+  list.innerHTML = '<div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line" style="margin-top:8px"></div>';
+  try {
+    const r = await fetch(API_URL + '/api/slots', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const slots = await r.json();
+    list.innerHTML = '';
+    if (slots.length === 0) {
+      list.innerHTML = '<p style="color:var(--danger)">Нет доступных слотов</p>';
+      return;
+    }
+    slots.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'slot-btn';
+      btn.textContent = s.label;
+      btn.onclick = () => {
+        haptic('light');
+        document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedSlot = s;
+      };
+      list.appendChild(btn);
+    });
+  } catch (e) { list.innerHTML = '<p style="color:var(--danger)">Ошибка загрузки слотов</p>'; }
+}
+
+// ===== ГЕО =====
+function requestGeo() {
+  haptic('light');
+  if (!tg.LocationManager) { showToast('Геолокация не поддерживается', 'warning'); return; }
+  tg.LocationManager.init(() => {
+    tg.LocationManager.getLocation((loc) => {
+      if (loc && loc.latitude) {
+        currentGeo = { lat: loc.latitude, lon: loc.longitude };
+        const btn = document.getElementById('geo-btn');
+        btn.textContent = '✅ Геопозиция получена';
+        btn.classList.add('ok');
+        skipGeoFlag = false;
+        haptic('success');
+      } else {
+        showToast('Не удалось получить гео', 'error');
+      }
+    });
+  });
+}
+function skipGeo() {
+  haptic('light');
+  currentGeo = { lat: 0, lon: 0 };
+  skipGeoFlag = true;
+  const btn = document.getElementById('geo-btn');
+  btn.textContent = '⏭ Геопозиция пропущена';
+  btn.classList.add('ok');
+}
+
+// ===== ЧЕК =====
+function showReceipt(order) {
+  const now = new Date(order.created_at || new Date());
+  const dateStr = now.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  let itemsHtml = '';
+  (order.items || []).forEach(it => {
+    itemsHtml += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed rgba(0,0,0,.1)">
+  <span style="flex:1">${escapeHtml(it.name)}${it.variant ? ' · ' + escapeHtml(it.variant) : ''} × ${it.quantity}</span>
+  <span style="font-weight:600">${Number(it.sum).toFixed(0)} ₽</span></div>`;
+  });
+  const etaLine = order.eta_minutes ? `<div><b>ETA:</b> ~${order.eta_minutes} мин</div>` : '';
+  const html = `
+    <div style="background:#fff;color:#000;border-radius:16px;padding:20px;font-family:'Courier New',monospace;box-shadow:0 10px 30px rgba(0,0,0,.5)">
+      <div style="text-align:center;margin-bottom:12px"><div style="font-size:24px;font-weight:700">🧾 ЧЕК</div><div style="font-size:12px;opacity:.7">Sever Tech Shop</div></div>
+      <div style="border-top:2px solid #000;border-bottom:2px solid #000;padding:8px 0;margin-bottom:12px;font-size:13px">
+        <div><b>Заказ:</b> ${order.order_number}</div>
+        <div><b>Дата:</b> ${dateStr}</div>
+        <div><b>Клиент:</b> ${order.public_id}</div>
+        <div><b>Тел:</b> ${order.phone_masked}</div>
+        <div><b>Адрес:</b> ${escapeHtml(order.address || '')}</div>
+        <div><b>Слот:</b> ${order.delivery_slot}</div>${etaLine}
+      </div>
+      <div style="font-size:13px;margin-bottom:12px">${itemsHtml}</div>
+      <div style="border-top:2px solid #000;padding-top:8px;text-align:right;font-size:16px;font-weight:700">ИТОГО: ${Number(order.total).toFixed(0)} ₽</div>
+      <div style="text-align:center;margin-top:16px;font-size:11px;opacity:.6">Спасибо за заказ!</div>
+    </div>`;
+  const modal = document.createElement('div');
+  modal.className = 'modal active';
+  modal.id = 'receipt-modal';
+  modal.innerHTML = `<div class="modal-content"><div class="modal-header"><h2>Ваш чек</h2><button class="close-btn" onclick="document.getElementById('receipt-modal').remove()">×</button></div>${html}<button class="btn-submit" style="margin-top:12px" onclick="document.getElementById('receipt-modal').remove()">Закрыть</button></div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+// ===== SUBMIT ЗАКАЗА (с рабочими часами) =====
+const submitOrder = withSubmitLock(async function() {
+  const btn = document.getElementById('submit-order-btn');
+  if (cart.length === 0) { showToast('Корзина пуста', 'warning'); closeCart(); return; }
+  if (!isWorkingNow()) { showToast('Магазин закрыт. Оформление с ' + WORK_HOURS.label, 'warning'); return; }
+
+  const name = document.getElementById('order-name').value.trim();
+  const phone = document.getElementById('order-phone').value.trim();
+  const address = document.getElementById('order-address').value.trim();
+  const promo = document.getElementById('order-promo').value.trim().toUpperCase();
+
+  if (!name || !phone || !address) { showToast('Заполните все поля', 'warning'); return; }
+  if (!selectedSlot) { showToast('Выберите слот доставки', 'warning'); return; }
+  if (!currentGeo.lat && !skipGeoFlag) { showToast('Отправьте геопозицию или нажмите "Пропустить"', 'warning'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Отправка...';
+  haptic('medium');
+
+  const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const orderData = {
+    items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity, price: i.price, variant: i.variant || '' })),
+    total, name, phone, address, user_id: MY_ID,
+    lat: currentGeo.lat, lon: currentGeo.lon,
+    delivery_slot: selectedSlot.value,
+    delivery_date: selectedSlot.date,
+    delivery_start: selectedSlot.start,
+    delivery_end: selectedSlot.end,
+    promo
+  };
+  try {
+    const r = await fetch(API_URL + '/api/order', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify(orderData)
+    });
+    const result = await r.json();
+    if (result.ok) {
+      haptic('success');
+      showReceipt(result);
+      cart = []; saveCart(); updateCartUI(); closeCart(); shopShowCatalog();
+      selectedSlot = null; currentGeo = { lat: 0, lon: 0 }; skipGeoFlag = false;
+      const gb = document.getElementById('geo-btn');
+      if (gb) { gb.textContent = '📍 Отправить геопозицию'; gb.classList.remove('ok'); }
+      document.getElementById('order-promo').value = '';
+      updatePlayerStats('orders');
+    } else {
+      let msg = result.message || result.error || 'Ошибка оформления';
+      if (typeof msg !== 'string') msg = 'Ошибка оформления';
+      showToast(msg, 'error');
+    }
+    } catch (e) {
+    showToast('Ошибка сети', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Оформить заказ';
+    // не сбрасываем skipGeoFlag — клиент мог ошибиться в адресе и хочет переоформить
+  }
+});
 
 // ===== МОИ ЗАКАЗЫ =====
 async function loadMyOrders() {
@@ -1591,7 +2154,7 @@ function renderMyOrders() {
     const etaLine = (o.eta_minutes && ['accepted','picked','enroute'].includes(o.status))
       ? `<div class="eta-timer" id="eta-${o.id}"></div>` : '';
     const slotLine = o.delivery_time ? `<div style="font-size:12px;opacity:.8;margin-top:4px">🕒 ${escapeHtml(o.delivery_time)}</div>` : '';
-    const courierLine = o.courier_name ? `<div style="font-size:12px;opacity:.8;margin-top:4px">🚚 Курьер: ${escapeHtml(o.courier_name)}</div>` : ''; 
+    const courierLine = o.courier_name ? `<div style="font-size:12px;opacity:.8;margin-top:4px">🚚 Курьер: ${escapeHtml(o.courier_name)}</div>` : '';
     list.innerHTML += `
       <div class="order-item">
         <div class="status"><b>${o.order_number || '#'+o.id}</b> · ${statuses[o.status] || o.status} · ${(o.created_at||'').slice(0,16).replace('T',' ')}</div>
@@ -1609,9 +2172,35 @@ function renderMyOrders() {
   updatePlayerStats('orders', 0);
 }
 
-function reorder(orderId) {
+async function reorder(orderId) {
   haptic('medium');
-  showToast('Функция скоро появится', 'info');
+  try {
+    const r = await fetch(`${API_URL}/api/order/${orderId}/reorder?user_id=${MY_ID}`,
+      { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const data = await r.json();
+    if (!data.ok) { showToast('Заказ не найден', 'error'); return; }
+
+    let added = 0, skipped = 0;
+    (data.items || []).forEach(it => {
+      if (!it.current_price || (it.stock || 0) <= 0) { skipped++; return; }
+      const variant = it.variant || '';
+      const existing = cart.find(c => c.product_id === it.product_id && (c.variant || '') === variant);
+      const alreadyQty = cart
+        .filter(c => c.product_id === it.product_id)
+        .reduce((s, c) => s + c.quantity, 0);
+      const maxQty = Math.min(99, (it.stock || 0) - alreadyQty);
+      if (maxQty <= 0) { skipped++; return; }
+      const add = Math.min(it.quantity, maxQty);
+      if (existing) existing.quantity += add;
+      else cart.push({ product_id: it.product_id, name: it.name,
+                       price: it.current_price, variant, quantity: add });
+      added++;
+    });
+
+    if (!added) { showToast('Все товары недоступны', 'warning'); return; }
+    saveCart(); updateCartUI(); openCart();
+    showToast(`Добавлено ${added}${skipped ? ` · пропущено ${skipped}` : ''}`, 'success');
+  } catch (e) { showToast('Ошибка сети', 'error'); }
 }
 
 // ===== ЧАТ =====
@@ -1722,221 +2311,15 @@ async function submitReview() {
     closeReviewModal();
   } catch (e) { showToast('Ошибка отправки', 'error'); }
 }
-
-// ===== КОРЗИНА =====
-function updateCartUI() {
-  const itemsDiv = document.getElementById('cart-items');
-  itemsDiv.innerHTML = '';
-  let total = 0;
-  let hasIssue = false;
-
-  cart.forEach((item, index) => {
-    total += item.price * item.quantity;
-    const p = _productsCache[item.product_id];
-    const stock = p ? Math.max(0, parseInt(p.stock) || 0) : Infinity;
-    const overLimit = p && item.quantity > stock;
-    if (overLimit) hasIssue = true;
-
-    itemsDiv.innerHTML += `
-      <div class="cart-item ${overLimit ? 'over-limit' : ''}">
-        <div style="flex:1">
-          <div>${escapeHtml(item.name)}${item.variant ? ` <small style="opacity:.6">(${escapeHtml(item.variant)})</small>` : ''}</div>
-          <div style="font-size:12px;opacity:.7">${item.quantity} × ${fmtMoney(item.price)}</div>
-          ${overLimit ? `<div style="font-size:11px;color:var(--danger);font-weight:700;margin-top:2px">⚠️ На складе только ${stock} шт</div>` : ''}
-        </div>
-        <button class="close-btn" onclick="removeFromCart(${index})">×</button>
-      </div>`;
-  });
-  document.getElementById('cart-total').textContent = `Итого: ${fmtMoney(total)}`;
-  updateCartBadge();
-  updateFreeShipping();
-
-  const submitBtn = document.getElementById('submit-order-btn');
-  if (submitBtn) {
-    if (hasIssue) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = '⚠️ Превышен остаток — удалите лишнее';
-    } else {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Оформить заказ';
-    }
-  }
-}
-function removeFromCart(index) {
-  haptic('medium');
-  cart.splice(index, 1);
-  updateCartUI();
-}
-
-function openCart() {
-  if (cart.length === 0) { showToast('Корзина пуста', 'warning'); return; }
-  haptic('light');
-  document.getElementById('cart-modal').classList.add('active');
-  updateCartUI();
-  loadSlots();
-  loadProfile();
-  loadPromoChips();
-  updateFreeShipping();
-}
-function closeCart() { document.getElementById('cart-modal').classList.remove('active'); }
-
-// ===== СЛОТЫ =====
-async function loadSlots() {
-  const list = document.getElementById('slots-list');
-  list.innerHTML = '<div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line" style="margin-top:8px"></div>';
-  try {
-    const r = await fetch(API_URL + '/api/slots', { headers: { 'ngrok-skip-browser-warning': 'true' } });
-    const slots = await r.json();
-    list.innerHTML = '';
-    if (slots.length === 0) {
-      list.innerHTML = '<p style="color:var(--danger)">Нет доступных слотов</p>';
-      return;
-    }
-    slots.forEach(s => {
-      const btn = document.createElement('button');
-      btn.className = 'slot-btn';
-      btn.textContent = s.label;
-      btn.onclick = () => {
-        haptic('light');
-        document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        selectedSlot = s;
-      };
-      list.appendChild(btn);
-    });
-  } catch (e) { list.innerHTML = '<p style="color:var(--danger)">Ошибка загрузки слотов</p>'; }
-}
-
-// ===== ГЕО =====
-function requestGeo() {
-  haptic('light');
-  if (!tg.LocationManager) { showToast('Геолокация не поддерживается', 'warning'); return; }
-  tg.LocationManager.init(() => {
-    tg.LocationManager.getLocation((loc) => {
-      if (loc && loc.latitude) {
-        currentGeo = { lat: loc.latitude, lon: loc.longitude };
-        const btn = document.getElementById('geo-btn');
-        btn.textContent = '✅ Геопозиция получена';
-        btn.classList.add('ok');
-        skipGeoFlag = false;
-        haptic('success');
-      } else {
-        showToast('Не удалось получить гео', 'error');
-      }
-    });
-  });
-}
-function skipGeo() {
-  haptic('light');
-  currentGeo = { lat: 0, lon: 0 };
-  skipGeoFlag = true;
-  const btn = document.getElementById('geo-btn');
-  btn.textContent = '⏭ Геопозиция пропущена';
-  btn.classList.add('ok');
-}
-
-// ===== ЧЕК =====
-function showReceipt(order) {
-  const now = new Date(order.created_at || new Date());
-  const dateStr = now.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  let itemsHtml = '';
-  (order.items || []).forEach(it => {
-    itemsHtml += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed rgba(0,0,0,.1)">
-      <span style="flex:1">${escapeHtml(it.name)} × ${it.quantity}</span>
-      <span style="font-weight:600">${Number(it.sum).toFixed(0)} ₽</span></div>`;
-  });
-  const etaLine = order.eta_minutes ? `<div><b>ETA:</b> ~${order.eta_minutes} мин</div>` : '';
-  const html = `
-    <div style="background:#fff;color:#000;border-radius:16px;padding:20px;font-family:'Courier New',monospace;box-shadow:0 10px 30px rgba(0,0,0,.5)">
-      <div style="text-align:center;margin-bottom:12px"><div style="font-size:24px;font-weight:700">🧾 ЧЕК</div><div style="font-size:12px;opacity:.7">Sever Tech Shop</div></div>
-      <div style="border-top:2px solid #000;border-bottom:2px solid #000;padding:8px 0;margin-bottom:12px;font-size:13px">
-        <div><b>Заказ:</b> ${order.order_number}</div>
-        <div><b>Дата:</b> ${dateStr}</div>
-        <div><b>Клиент:</b> ${order.public_id}</div>
-        <div><b>Тел:</b> ${order.phone_masked}</div>
-        <div><b>Адрес:</b> ${escapeHtml(order.address || '')}</div>
-        <div><b>Слот:</b> ${order.delivery_slot}</div>${etaLine}
-      </div>
-      <div style="font-size:13px;margin-bottom:12px">${itemsHtml}</div>
-      <div style="border-top:2px solid #000;padding-top:8px;text-align:right;font-size:16px;font-weight:700">ИТОГО: ${Number(order.total).toFixed(0)} ₽</div>
-      <div style="text-align:center;margin-top:16px;font-size:11px;opacity:.6">Спасибо за заказ!<br>Мы свяжемся с вами для подтверждения.</div>
-    </div>`;
-  const modal = document.createElement('div');
-  modal.className = 'modal active';
-  modal.id = 'receipt-modal';
-  modal.innerHTML = `<div class="modal-content"><div class="modal-header"><h2>Ваш чек</h2><button class="close-btn" onclick="document.getElementById('receipt-modal').remove()">×</button></div>${html}<button class="btn-submit" style="margin-top:12px" onclick="document.getElementById('receipt-modal').remove()">Закрыть</button></div>`;
-  document.body.appendChild(modal);
-}
-
-// ===== ОФОРМЛЕНИЕ (ФИКС D — typeof msg !== 'string') =====
-const submitOrder = withSubmitLock(async function() {
-  const btn = document.getElementById('submit-order-btn');
-
-  if (cart.length === 0) {
-    showToast('Корзина пуста', 'warning');
-    closeCart();
-    return;
-  }
-
-  const name = document.getElementById('order-name').value.trim();
-  const phone = document.getElementById('order-phone').value.trim();
-  const address = document.getElementById('order-address').value.trim();
-  const promo = document.getElementById('order-promo').value.trim().toUpperCase();
-
-  if (!name || !phone || !address) { showToast('Заполните все поля', 'warning'); return; }
-  if (!selectedSlot) { showToast('Выберите слот доставки', 'warning'); return; }
-  if (!currentGeo.lat && !skipGeoFlag) { showToast('Отправьте геопозицию или нажмите "Пропустить"', 'warning'); return; }
-
-  btn.disabled = true;
-  btn.textContent = 'Отправка...';
-  haptic('medium');
-
-  const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const orderData = {
-    items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity, price: i.price })),
-    total, name, phone, address, user_id: MY_ID,
-    lat: currentGeo.lat, lon: currentGeo.lon,
-    delivery_slot: selectedSlot.value,
-    delivery_date: selectedSlot.date,
-    delivery_start: selectedSlot.start,
-    delivery_end: selectedSlot.end,
-    promo
-  };
-  try {
-    const r = await fetch(API_URL + '/api/order', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-      body: JSON.stringify(orderData)
-    });
-    const result = await r.json();
-    if (result.ok) {
-      haptic('success');
-      showReceipt(result);
-      cart = []; updateCartUI(); closeCart(); shopShowCatalog();
-      selectedSlot = null; currentGeo = { lat: 0, lon: 0 }; skipGeoFlag = false;
-      const gb = document.getElementById('geo-btn');
-      if (gb) { gb.textContent = '📍 Отправить геопозицию'; gb.classList.remove('ok'); }
-      document.getElementById('order-promo').value = '';
-      updatePlayerStats('orders');
-    } else {
-      // ФИКС D — message может быть не строкой
-      let msg = result.message || result.error || 'Ошибка оформления';
-      if (typeof msg !== 'string') msg = 'Ошибка оформления';
-      showToast(msg, 'error');
-    }
-  } catch (e) {
-    showToast('Ошибка сети', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Оформить заказ';
-  }
-});
 </script>
-
-<!-- ===== §4 КАРТОЧКА ТОВАРА (фиксы #2, #3, #4, #7, #10, #11, C, E) ===== -->
 <script>
+/* ============================================================
+   §4 КАРТОЧКА ТОВАРА (перелистывание, цвета, отзывы, похожие)
+   ============================================================ */
 let currentProduct = null;
 let currentColor = '';
 let currentQty = 1;
+let productList = [];
 
 async function openProduct(productId) {
   try {
@@ -1945,46 +2328,31 @@ async function openProduct(productId) {
     if (!p.ok) { showToast('Товар недоступен', 'error'); return; }
 
     currentProduct = p;
-    _productsCache[p.id] = p;   // 🔥 ФИКС C — обновляем кэш свежими данными
+    _productsCache[p.id] = p;
     currentQty = 1;
-
-    // ФИКС #3 — currentColor ДО проверки stock
     currentColor = (p.colors && p.colors[0]) || '';
 
-    // ФИКС #4 — всегда сбрасываем состояние кнопки «Добавить»
-    // ФИКС #11 — без setTimeout, синхронно
-    const submitBtn = document.querySelector('#product-modal .ps-sticky-bar .btn-submit');
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = '🛒 Добавить в корзину';
-      submitBtn.style.background = '';
-    }
+    // Список для перелистывания
+    productList = window._lastProducts || Object.values(_productsCache);
+    updatePsCounter();
 
-    // ФИКС #2 — ps-qty корректно отображает 0 при stock = 0
+    const submitBtn = document.querySelector('#product-modal .ps-sticky-bar .btn-submit');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '🛒 Добавить в корзину'; submitBtn.style.background = ''; }
+
     const stock = Math.max(0, parseInt(p.stock) || 0);
     if (stock <= 0) {
       currentQty = 0;
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = '❌ Нет в наличии';
-        submitBtn.style.background = 'var(--danger)';
-      }
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '❌ Нет в наличии'; submitBtn.style.background = 'var(--danger)'; }
     } else {
       const inCart = getCartQty(p.id, currentColor);
       const available = getMaxQtyForProduct(p.id, currentColor);
       if (available <= 0) {
-        currentQty = 0;   // 🔥 ФИКС E — не показываем «1», если всё в корзине
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = '❌ В корзине уже всё';
-          submitBtn.style.background = 'var(--warning, #f39c12)';
-        }
+        currentQty = 0;
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '❌ В корзине уже всё'; submitBtn.style.background = 'var(--warning, #f39c12)'; }
       } else if (inCart > 0) {
         showToast(`В корзине уже ${inCart} шт`, 'info');
       }
     }
-
-    // ФИКС #10 — одно присваивание
     document.getElementById('ps-qty').textContent = currentQty;
 
     document.getElementById('ps-photo').innerHTML = p.image_url ? `<img src="${imgUrl(p.image_url)}">` : '📦';
@@ -2008,21 +2376,10 @@ async function openProduct(productId) {
           chip.classList.add('selected');
           currentColor = c;
           const avail = getMaxQtyForProduct(p.id, currentColor);
-          const inCartNew = getCartQty(p.id, currentColor);
           if (submitBtn) {
-            if (stock <= 0) {
-              submitBtn.disabled = true;
-              submitBtn.textContent = '❌ Нет в наличии';
-              submitBtn.style.background = 'var(--danger)';
-            } else if (avail <= 0) {
-              submitBtn.disabled = true;
-              submitBtn.textContent = '❌ В корзине уже всё';
-              submitBtn.style.background = 'var(--warning, #f39c12)';
-            } else {
-              submitBtn.disabled = false;
-              submitBtn.textContent = '🛒 Добавить в корзину';
-              submitBtn.style.background = '';
-            }
+            if (stock <= 0) { submitBtn.disabled = true; submitBtn.textContent = '❌ Нет в наличии'; submitBtn.style.background = 'var(--danger)'; }
+            else if (avail <= 0) { submitBtn.disabled = true; submitBtn.textContent = '❌ В корзине уже всё'; submitBtn.style.background = 'var(--warning, #f39c12)'; }
+            else { submitBtn.disabled = false; submitBtn.textContent = '🛒 Добавить в корзину'; submitBtn.style.background = ''; }
           }
           if (currentQty > avail && avail > 0) currentQty = avail;
           if (currentQty < 1 && stock > 0) currentQty = 1;
@@ -2034,7 +2391,7 @@ async function openProduct(productId) {
       document.getElementById('ps-colors-block').style.display = 'none';
     }
 
-    // Характеристики
+    // Specs
     const specsBox = document.getElementById('ps-specs');
     specsBox.innerHTML = '';
     const specs = p.specs || {};
@@ -2057,41 +2414,55 @@ async function openProduct(productId) {
   } catch (e) { showToast('Ошибка загрузки', 'error'); }
 }
 
+function updatePsCounter() {
+  const el = document.getElementById('ps-counter');
+  if (!el) return;
+  if (!currentProduct || !productList.length) { el.textContent = '— / —'; return; }
+  const idx = productList.findIndex(p => p.id === currentProduct.id);
+  el.textContent = `${idx + 1} / ${productList.length}`;
+  const prevBtn = document.getElementById('ps-prev');
+  const nextBtn = document.getElementById('ps-next');
+  if (prevBtn) prevBtn.disabled = idx <= 0;
+  if (nextBtn) nextBtn.disabled = idx < 0 || idx >= productList.length - 1;
+}
+
+function prevProduct() {
+  if (!currentProduct || !productList.length) return;
+  const idx = productList.findIndex(p => p.id === currentProduct.id);
+  if (idx > 0) { haptic('light'); openProduct(productList[idx - 1].id); }
+}
+function nextProduct() {
+  if (!currentProduct || !productList.length) return;
+  const idx = productList.findIndex(p => p.id === currentProduct.id);
+  if (idx >= 0 && idx < productList.length - 1) { haptic('light'); openProduct(productList[idx + 1].id); }
+}
+
 function colorToCss(c) {
   const map = {
     'чёрный':'#111','черный':'#111','белый':'#eee','синий':'#2a5bd7','красный':'#d72a2a',
     'серый':'#888','зелёный':'#2ecc71','зеленый':'#2ecc71','золотой':'#ffcc00',
-    'розовый':'#ff69b4','фиолетовый':'#8b5cf6','оранжевый':'#ff8a4a','жёлтый':'#ffcc00','желтый':'#ffcc00'
+    'розовый':'#ff69b4','фиолетовый':'#8b5cf6','оранжевый':'#ff8a4a','жёлтый':'#ffcc00','желтый':'#ffcc00',
+    'серебро':'#c0c0c0','серебряный':'#c0c0c0','графит':'#383838',
+    'black':'#111','white':'#eee','blue':'#2a5bd7','red':'#d72a2a','gray':'#888','grey':'#888',
+    'green':'#2ecc71','gold':'#ffcc00','pink':'#ff69b4','purple':'#8b5cf6','orange':'#ff8a4a',
+    'yellow':'#ffcc00','silver':'#c0c0c0','graphite':'#383838','space gray':'#4a4a4a',
+    'spacegray':'#4a4a4a','midnight':'#1a1a2e','starlight':'#f5f5dc','titanium':'#878681',
+    'natural':'#d4c5a9','rose gold':'#e6b8a4','rose':'#e6a4b4','deep purple':'#4a1a6a',
+    'midnight green':'#2a4a3a','almond':'#c7b7a3','sand':'#d4c5a9'
   };
-  return map[String(c).toLowerCase()] || '#444';
+  const key = String(c).toLowerCase().trim();
+  return map[key] || '#444';
 }
 
-// ФИКС #7 — changeQty не увеличивает при stock = 0
 function changeQty(delta) {
   if (!currentProduct) return;
   haptic('light');
-
   const stock = Math.max(0, parseInt(currentProduct.stock) || 0);
-  if (stock <= 0) {
-    showToast('Нет в наличии', 'warning');
-    return;
-  }
-
+  if (stock <= 0) { showToast('Нет в наличии', 'warning'); return; }
   const available = getMaxQtyForProduct(currentProduct.id, currentColor);
-
-  if (available <= 0) {
-    showToast('В корзине уже весь остаток', 'warning');
-    haptic('warning');
-    return;
-  }
-
+  if (available <= 0) { showToast('В корзине уже весь остаток', 'warning'); haptic('warning'); return; }
   const newQty = Math.max(1, Math.min(available, currentQty + delta));
-
-  if (newQty === currentQty && delta > 0) {
-    showToast(`Достигнут лимит: ${available} шт`, 'warning');
-    return;
-  }
-
+  if (newQty === currentQty && delta > 0) { showToast(`Достигнут лимит: ${available} шт`, 'warning'); return; }
   currentQty = newQty;
   document.getElementById('ps-qty').textContent = currentQty;
 }
@@ -2100,39 +2471,22 @@ function addFromModal() {
   if (!currentProduct) return;
   const variant = currentColor || '';
   const p = currentProduct;
-
   const stock = Math.max(0, parseInt(p.stock) || 0);
-  if (stock <= 0) {
-    showToast('Нет в наличии', 'error');
-    haptic('error');
-    return;
-  }
-
+  if (stock <= 0) { showToast('Нет в наличии', 'error'); haptic('error'); return; }
   const existing = cart.find(it => it.product_id === p.id && (it.variant || '') === variant);
   const currentCartQty = existing ? existing.quantity : 0;
   const maxQty = getMaxQtyForProduct(p.id, variant);
   const availableToAdd = maxQty - currentCartQty;
-
-  if (availableToAdd <= 0) {
-    showToast(`В корзине уже максимум · ${currentCartQty} шт`, 'warning');
-    haptic('warning');
-    return;
-  }
-
+  if (availableToAdd <= 0) { showToast(`В корзине уже максимум · ${currentCartQty} шт`, 'warning'); haptic('warning'); return; }
   const canAdd = Math.min(currentQty, availableToAdd);
   haptic('medium');
-
   if (existing) existing.quantity += canAdd;
   else cart.push({ product_id: p.id, name: p.name, price: p.price, variant, quantity: canAdd });
-
+  saveCart();
   updateCartUI();
   closeProductModal();
-
-  if (canAdd < currentQty) {
-    showToast(`Добавлено ${canAdd} из ${currentQty} · макс ${maxQty}`, 'warning');
-  } else {
-    showToast(`${p.name}${variant ? ' · '+variant : ''} × ${canAdd}`, 'success');
-  }
+  if (canAdd < currentQty) showToast(`Добавлено ${canAdd} из ${currentQty} · макс ${maxQty}`, 'warning');
+  else showToast(`${p.name}${variant ? ' · '+variant : ''} × ${canAdd}`, 'success');
   haptic('success');
 }
 
@@ -2147,9 +2501,7 @@ async function loadProductReviews(productId) {
     const r = await fetch(`${API_URL}/api/reviews/${productId}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
     if (!r.ok) { block.style.display = 'none'; summary.style.display = 'none'; return; }
     const data = await r.json();
-    if (!data.reviews || data.reviews.length === 0) {
-      block.style.display = 'none'; summary.style.display = 'none'; return;
-    }
+    if (!data.reviews || data.reviews.length === 0) { block.style.display = 'none'; summary.style.display = 'none'; return; }
     summary.style.display = 'flex';
     block.style.display = 'block';
     const avg = data.avg_rating || 5;
@@ -2193,8 +2545,11 @@ async function loadSimilarProducts(productId, productName) {
 }
 </script>
 
-<!-- ===== §5 КЛИКЕР (фиксы B, isBoss, loadStatus, Bonus) ===== -->
 <script>
+/* ============================================================
+   §5 КЛИКЕР: анти-автоклик, баффы, промо, лидерборд с никами
+   ============================================================ */
+
 const svgIcons = {
   mouse: `<svg viewBox="0 0 24 24" fill="none" stroke="#4a86ff" stroke-width="1.5"><rect x="6" y="2" width="12" height="20" rx="6"/><line x1="12" y1="2" x2="12" y2="10"/><circle cx="12" cy="14" r="2" fill="#4a86ff"/></svg>`,
   keyboard: `<svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4"/></svg>`,
@@ -2204,25 +2559,17 @@ const svgIcons = {
   gpu: `<svg viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="1.5"><rect x="2" y="8" width="20" height="8" rx="2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/><path d="M12 8v8"/></svg>`,
   pc: `<svg viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><rect x="5" y="6" width="14" height="10" rx="1"/><path d="M8 20h8"/></svg>`,
   server: `<svg viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg>`,
-  mob_forest: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#2d4a2d" stroke="#4a86ff" stroke-width="2"/><circle cx="35" cy="40" r="8" fill="#ff4a4a"/><circle cx="65" cy="40" r="8" fill="#ff4a4a"/><path d="M40 60 Q50 70 60 60" stroke="#fff" stroke-width="3" fill="none"/></svg>`,
-  mob_mountain: `<svg viewBox="0 0 100 100"><path d="M10 80 L50 20 L90 80 Z" fill="#4a4a5a" stroke="#4a86ff" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="#ff4a4a"/></svg>`,
-  mob_castle: `<svg viewBox="0 0 100 100"><rect x="20" y="40" width="60" height="50" fill="#2a2a2a" stroke="#4a86ff" stroke-width="2"/><path d="M20 40 L30 20 L40 40 M60 40 L70 20 L80 40" fill="#2a2a2a" stroke="#4a86ff" stroke-width="2"/><circle cx="50" cy="60" r="10" fill="#ff4a4a"/></svg>`,
-  mob_volcano: `<svg viewBox="0 0 100 100"><path d="M10 80 L50 10 L90 80 Z" fill="#2e1515" stroke="#ff4a4a" stroke-width="2"/><path d="M30 50 L50 30 L70 50" stroke="#ffcc00" stroke-width="4" fill="none"/></svg>`,
-  mob_space: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="#1a1a3e" stroke="#8b5cf6" stroke-width="2"/><circle cx="35" cy="40" r="5" fill="#fff"/><circle cx="65" cy="60" r="3" fill="#fff"/><circle cx="50" cy="50" r="10" fill="#ff4a4a"/></svg>`,
-  mob_ice: `<svg viewBox="0 0 100 100"><polygon points="50,10 90,50 50,90 10,50" fill="#152e2e" stroke="#4a86ff" stroke-width="2"/><polygon points="50,25 75,50 50,75 25,50" fill="#2e5e5e"/></svg>`,
-  boss: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#2a0a0a" stroke="#ff0000" stroke-width="3"/><circle cx="35" cy="40" r="10" fill="#ff4a4a"/><circle cx="65" cy="40" r="10" fill="#ff4a4a"/><path d="M30 70 L50 60 L70 70" stroke="#ff0000" stroke-width="4" fill="none"/><path d="M20 20 L30 30 M80 20 L70 30" stroke="#ff0000" stroke-width="3"/></svg>`
 };
 
 const locations = [
-  { name: "🌲 Лес",       emoji: "🐺",         bossEmoji: "🐺💀", color: "#2d6a2d" },
-  { name: "🏔 Горы",      emoji: "🦅",         bossEmoji: "🦅💀", color: "#4a4a6a" },
-  { name: "🏰 Замок",     emoji: "🐉",         bossEmoji: "🐉💀", color: "#6a2d6a" },
-  { name: "🔥 Вулкан",    emoji: "👹",         bossEmoji: "👹💀", color: "#8a2a1a" },
-  { name: "🌌 Космос",    emoji: "👽",         bossEmoji: "👾💀", color: "#3a1a6a" },
-  { name: "❄️ Ледники",   emoji: "🐻‍❄️",       bossEmoji: "🐻‍❄️💀", color: "#1a4a6a" },
+  { name: "🌲 Лес",       emoji: "🐺",         bossEmoji: "🐺💀", color: "#2d6a2d", mobs: ['🐺','🦊','🐻','🦌'] },
+  { name: "🏔 Горы",      emoji: "🦅",         bossEmoji: "🦅💀", color: "#4a4a6a", mobs: ['🦅','🐐','🦌','🐉'] },
+  { name: "🏰 Замок",     emoji: "🐉",         bossEmoji: "🐉💀", color: "#6a2d6a", mobs: ['🐉','👻','🧙','🐲'] },
+  { name: "🔥 Вулкан",    emoji: "👹",         bossEmoji: "👹💀", color: "#8a2a1a", mobs: ['👹','🔥','🦂','🐍'] },
+  { name: "🌌 Космос",    emoji: "👽",         bossEmoji: "👾💀", color: "#3a1a6a", mobs: ['👽','👾','🛸','🤖'] },
+  { name: "❄️ Ледники",   emoji: "🐻‍❄️",       bossEmoji: "🐻‍❄️💀", color: "#1a4a6a", mobs: ['🐻‍❄️','🐧','🦭','🧊'] },
 ];
 
-// 🔥 ФИКС B — восстановление прогресса кликера из localStorage
 const SAVED_GAME_KEY = 'game_state_' + MY_ID;
 const savedGame = lsGet(SAVED_GAME_KEY, null);
 
@@ -2237,10 +2584,11 @@ let state = {
   maxMobHp: (savedGame && savedGame.maxMobHp) || 100,
   isBoss: false,
   crits: 0, totalMobs: 0, isSpawning: false,
-  clickerLevel: 0
+  clickerLevel: 0,
+  buffs: [],
+  promoDrops: (savedGame && savedGame.promoDrops) || [],
 };
 
-// 🔥 ФИКС Extra — восстанавливаем isBoss для сохранённого прогресса
 if (savedGame) {
   state.isBoss = (state.mobsKilled > 0 && state.mobsKilled % 10 === 0);
 }
@@ -2251,13 +2599,33 @@ function saveGameProgress() {
     mobsKilled: state.mobsKilled,
     currentMobHp: state.currentMobHp,
     maxMobHp: state.maxMobHp,
+    promoDrops: state.promoDrops,
   });
 }
 
 let cosmetics = [];
 let clickBuffer = 0;
 
-// COMBO
+// ===== АНТИ-АВТОКЛИК =====
+const clickGuard = { lastClick: 0, positions: [], minInterval: 35 };
+function registerClick(x, y) {
+  const now = Date.now();
+  if (now - clickGuard.lastClick < clickGuard.minInterval) return false;
+  clickGuard.lastClick = now;
+  // Проверяем: если последние 8 кликов были в точке ±5px и быстрее 1.5с — блок
+  if (clickGuard.positions.length >= 8) {
+    const last8 = clickGuard.positions.slice(-8);
+    const allClose = last8.every(p =>
+      Math.abs(p.x - x) < 5 && Math.abs(p.y - y) < 5 && now - p.t < 1500
+    );
+    if (allClose) return false;
+  }
+  clickGuard.positions.push({ x, y, t: now });
+  if (clickGuard.positions.length > 12) clickGuard.positions.shift();
+  return true;
+}
+
+// ===== COMBO =====
 let comboCount = 0;
 let comboTimer = null;
 let comboMultiplier = 1;
@@ -2281,11 +2649,26 @@ function updateCombo() {
     comboCount = 0;
     comboMultiplier = 1;
     const el = document.getElementById('combo-indicator');
-    if (el) { el.classList.remove('show', 'hot'); }
+    if (el) el.classList.remove('show', 'hot');
   }, 1200);
 }
 
-// ЗВУК
+// ===== БАФФЫ =====
+function getActiveBuffMultiplier() {
+  let m = 1;
+  state.buffs = state.buffs.filter(b => b.expires > Date.now());
+  state.buffs.forEach(b => { if (b.type === 'damage') m *= b.mult; });
+  return m;
+}
+function renderBuffs() {
+  const row = document.getElementById('buffs-row');
+  if (!row) return;
+  const now = Date.now();
+  state.buffs = state.buffs.filter(b => b.expires > now);
+  row.innerHTML = state.buffs.map(b => `<span class="buff-chip">${b.icon} ${b.label} (${Math.ceil((b.expires - now)/1000)}с)</span>`).join('');
+}
+
+// ===== ЗВУК =====
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 function initAudio() { try { if (!audioCtx) audioCtx = new AudioContext(); } catch (e) {} }
@@ -2304,14 +2687,17 @@ function playSound(freq, dur, type) {
   } catch (e) {}
 }
 
+// ===== ТАБЫ =====
 function gameSwitchTab(tab, el) {
   haptic('light');
   document.querySelectorAll('#app-game .tab-content').forEach(x => x.style.display = 'none');
   document.querySelectorAll('#app-game .tab').forEach(x => x.classList.remove('active'));
-  document.getElementById('tab-' + tab).style.display = 'block';
-  el.classList.add('active');
+  const target = document.getElementById('tab-' + tab);
+  if (target) target.style.display = 'block';
+  if (el) el.classList.add('active');
   if (tab === 'quests') { loadQuests(); checkDailyBonus(); }
   if (tab === 'prestige') updatePrestigeUI();
+  if (tab === 'shop') updateAutoUI();
 }
 
 function getMobHp(level, isBoss) {
@@ -2320,7 +2706,7 @@ function getMobHp(level, isBoss) {
   return base;
 }
 
-// СТАТУС
+// ===== СТАТУС =====
 async function loadStatus() {
   if (!MY_ID) return;
   try {
@@ -2338,7 +2724,6 @@ async function loadStatus() {
       state.prestige_level = data.prestige_level || 0;
       state.clickerLevel = data.clicker_level || 0;
       updateLevelCard(state.xp);
-      // 🔥 ФИКС Extra — только если моб мёртв, респавним. Иначе render() с сохранённым HP
       if (state.currentMobHp <= 0) spawnMob();
       else render();
     }
@@ -2359,16 +2744,22 @@ async function loadCosmetics() {
   } catch (e) { console.error(e); }
 }
 
+// ===== РЕАЛЬНЫЕ ХАРАКТЕРИСТИКИ =====
 function updateAutoUI() {
   const lvlEl = document.getElementById('auto-level');
   const costEl = document.getElementById('auto-cost');
+  const passiveEl = document.getElementById('auto-passive');
   const btn = document.getElementById('btn-auto');
-  if (!lvlEl || !costEl) return;
-  lvlEl.textContent = state.clickerLevel;
-  const nextCost = 5000 * (state.clickerLevel + 1);
-  costEl.textContent = fmt(nextCost);
-  btn.disabled = !(state.xp >= nextCost);
-  btn.style.opacity = state.xp >= nextCost ? '1' : '0.5';
+  if (lvlEl) lvlEl.textContent = state.clickerLevel;
+  if (costEl) costEl.textContent = fmt(5000 * (state.clickerLevel + 1));
+  if (passiveEl) passiveEl.textContent = 1 + state.clickerLevel * 5;
+  if (btn) {
+    const cost = 5000 * (state.clickerLevel + 1);
+    btn.disabled = state.xp < cost;
+    btn.style.opacity = state.xp < cost ? '0.5' : '1';
+  }
+  const adm = document.getElementById('clicker-autodmg');
+  if (adm) adm.textContent = fmt(1 + state.clickerLevel * 5);
 }
 
 function updateHeroVisuals() {
@@ -2377,7 +2768,7 @@ function updateHeroVisuals() {
   if (skin) {
     const ha = document.getElementById('hero-avatar'); if (ha) ha.textContent = skin.emoji;
     const bs = document.getElementById('battle-skin'); if (bs) bs.textContent = skin.emoji;
-    const pge = document.getElementById('pg-mob-emoji'); if (pge) pge.textContent = skin.emoji;
+    
   }
   if (title) {
     const ht = document.getElementById('hero-title'); if (ht) ht.textContent = title.emoji + ' ' + title.name;
@@ -2392,7 +2783,7 @@ function spawnMob() {
   state.currentMobHp = state.maxMobHp;
   render();
   if (typeof renderProfileGame === 'function') renderProfileGame();
-  saveGameProgress();   // 🔥 ФИКС B — сохраняем после спавна
+  saveGameProgress();
 }
 
 function render() {
@@ -2407,30 +2798,19 @@ function render() {
   const gameEl = document.getElementById('app-game');
   if (gameEl) gameEl.style.background = `radial-gradient(circle at top, ${bgColor} 0%, #0a0a12 100%)`;
 
-    const ln = document.getElementById('location-name'); if (ln) ln.textContent = loc.name + " · Уровень " + state.mobLevel;
+  const ln = document.getElementById('location-name');
+  if (ln) ln.textContent = loc.name + " · Уровень " + state.mobLevel;
   const mc = document.getElementById('mob-container');
-    if (mc) {
-    const mobEmoji = state.isBoss ? loc.bossEmoji : loc.emoji;
+  if (mc) {
+    const mobType = state.isBoss ? loc.bossEmoji : loc.mobs[state.mobLevel % loc.mobs.length];
     const baseGlow = `drop-shadow(0 15px 25px rgba(0,0,0,.8)) drop-shadow(0 0 25px ${loc.color})`;
     const bossGlow = state.isBoss
       ? `drop-shadow(0 0 30px #ff0000) drop-shadow(0 0 60px #ff4a4a) ${baseGlow}`
       : baseGlow;
     mc.innerHTML = `
-      <div style="
-        font-size:110px;
-        line-height:1;
-        text-align:center;
-        margin:8px 0;
-        animation: mobFloat 3s ease-in-out infinite;
-        user-select: none;
-      ">
-        <div id="mob-inner" style="
-          filter: ${bossGlow};
-          transition: transform .08s cubic-bezier(.4,0,.2,1);
-          display: inline-block;
-        ">${mobEmoji}</div>
-      </div>
-    `;
+      <div style="font-size:110px;line-height:1;text-align:center;margin:8px 0;user-select:none;">
+        <div id="mob-inner" style="filter: ${bossGlow}; transition: transform .08s cubic-bezier(.4,0,.2,1); display: inline-block;">${mobType}</div>
+      </div>`;
   }
   const bl = document.getElementById('boss-label'); if (bl) bl.textContent = state.isBoss ? '⚠️ БОСС ⚠️' : '';
   const bp = document.getElementById('boss-progress'); if (bp) bp.style.width = ((state.mobsKilled % 10) / 10 * 100) + '%';
@@ -2444,32 +2824,35 @@ function render() {
   const hpText = document.getElementById('mob-info');
   if (hpText) hpText.textContent = 'HP: ' + Math.max(0, Math.round(state.currentMobHp)) + ' / ' + Math.round(state.maxMobHp);
 
-  const shop = document.getElementById('clicker-shop');
-  if (shop) {
-    shop.innerHTML = '';
-    state.items.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'shop-item';
-      const canBuy = state.xp >= item.cost;
-      const iconHtml = svgIcons[item.key] ? `<div class="item-icon">${svgIcons[item.key]}</div>` : `<div style="font-size:36px">${item.emoji}</div>`;
-      let extra = `+${item.power} урон`;
-      if (item.key === 'cpu') extra += ' · +5% крит';
-      if (item.key === 'gpu') extra += ' · +1 крит-множитель';
-      div.innerHTML = `
-        ${iconHtml}
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:15px">${item.name} ${item.count > 0 ? `<span style="color:#2ecc71;font-size:13px">×${item.count}</span>` : ''}</div>
-          <div style="font-size:12px;opacity:.6;margin-top:2px">${item.description}</div>
-          <div class="item-stats">${extra}${item.count > 0 ? ` · всего +${fmt(item.total_power)}` : ''}</div>
-        </div>
-        <button class="btn-buy" onclick="buyItem('${item.key}')" ${canBuy ? '' : 'disabled'}>${fmt(item.cost)}</button>`;
-      shop.appendChild(div);
-    });
-  }
-
+  renderBuffs();
+  renderShopItems();
   updateHeroVisuals();
   updateAutoUI();
   if (typeof renderProfileGame === 'function') renderProfileGame();
+}
+
+function renderShopItems() {
+  const shop = document.getElementById('clicker-shop');
+  if (!shop) return;
+  shop.innerHTML = '';
+  state.items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'shop-item';
+    const canBuy = state.xp >= item.cost;
+    const iconHtml = svgIcons[item.key] ? `<div class="item-icon">${svgIcons[item.key]}</div>` : `<div style="font-size:36px">${item.emoji}</div>`;
+    let extra = `+${item.power} урон`;
+    if (item.key === 'cpu') extra += ' · +5% крит';
+    if (item.key === 'gpu') extra += ' · +1 крит-множитель';
+    div.innerHTML = `
+      ${iconHtml}
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:15px">${item.name} ${item.count > 0 ? `<span style="color:#2ecc71;font-size:13px">×${item.count}</span>` : ''}</div>
+        <div style="font-size:12px;opacity:.6;margin-top:2px">${item.description}</div>
+        <div class="item-stats">${extra}${item.count > 0 ? ` · всего +${fmt(item.total_power)}` : ''}</div>
+      </div>
+      <button class="btn-buy" onclick="buyItem('${item.key}')" ${canBuy ? '' : 'disabled'}>${fmt(item.cost)}</button>`;
+    shop.appendChild(div);
+  });
 }
 
 function renderCosmetics() {
@@ -2520,8 +2903,17 @@ function spawnCritParticles(x, y) {
 async function hitMob(event) {
   if (state.currentMobHp <= 0 || state.isSpawning) return;
 
+  const fromProfile = !!(event && event.currentTarget && event.currentTarget.classList &&
+                         event.currentTarget.classList.contains('pg-mob'));
+
+  if (!fromProfile) {
+    const x = event ? (event.clientX || 0) : 0;
+    const y = event ? (event.clientY || 0) : 0;
+    if (!registerClick(x, y)) return;
+  }
+
   updateCombo();
-  let damage = state.total_power * comboMultiplier;
+  let damage = state.total_power * comboMultiplier * getActiveBuffMultiplier();
   let isCrit = false;
   if (Math.random() < state.crit_chance) {
     damage *= state.crit_mult;
@@ -2536,56 +2928,33 @@ async function hitMob(event) {
   clickBuffer++;
   updatePlayerStats('clicks');
 
-  try {
-    if (event && event.clientX !== undefined) {
-      const card = document.getElementById('mob-card');
-      if (card) {
-        const rect = card.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        const float = document.createElement('div');
-        float.className = 'floating-text' + (isCrit ? ' crit-text' : '');
-        float.style.left = x + 'px';
-        float.style.top = y + 'px';
-        float.textContent = isCrit ? '💥 ' + fmt(damage) : fmt(damage);
-        card.appendChild(float);
-        setTimeout(() => float.remove(), 900);
-        if (isCrit) spawnCritParticles(x, y);
+  if (!fromProfile) {
+    try {
+      if (event && event.clientX !== undefined) {
+        const card = document.getElementById('mob-card');
+        if (card) {
+          const rect = card.getBoundingClientRect();
+          const lx = event.clientX - rect.left;
+          const ly = event.clientY - rect.top;
+          const float = document.createElement('div');
+          float.className = 'floating-text' + (isCrit ? ' crit-text' : '');
+          float.style.left = lx + 'px';
+          float.style.top = ly + 'px';
+          float.textContent = isCrit ? '💥 ' + fmt(damage) : fmt(damage);
+          card.appendChild(float);
+          setTimeout(() => float.remove(), 900);
+          if (isCrit) spawnCritParticles(lx, ly);
+        }
       }
-    }
-    const mob = document.getElementById('mob-inner');
-    if (mob) { mob.style.transform = 'scale(0.85)'; setTimeout(() => { mob.style.transform = 'scale(1)'; }, 100); }
-    if (isCrit) playSound(1200, 0.1, 'sawtooth'); else playSound(400, 0.05, 'square');
-  } catch (e) {}
+      const mob = document.getElementById('mob-inner');
+      if (mob) { mob.style.transform = 'scale(0.85)'; setTimeout(() => { mob.style.transform = 'scale(1)'; }, 100); }
+    } catch (e) {}
+  }
+
+  if (isCrit) playSound(1200, 0.1, 'sawtooth'); else playSound(400, 0.05, 'square');
 
   if (state.currentMobHp <= 0) {
-    state.currentMobHp = 0;
-    state.isSpawning = true;
-    const hpFill = document.getElementById('mob-hp-fill'); if (hpFill) hpFill.style.width = '0%';
-    const hpText = document.getElementById('mob-info'); if (hpText) hpText.textContent = 'HP: 0 / ' + Math.round(state.maxMobHp);
-
-    if (clickBuffer > 0) {
-      const clicksToSend = clickBuffer;
-      clickBuffer = 0;
-      fetch(API_URL + '/api/clicker/click_batch', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        body: JSON.stringify({ user_id: MY_ID, clicks: clicksToSend })
-      }).then(r => r.json()).then(data => {
-        if (data.ok) {
-          state.xp = data.xp;
-          updateLevelCard(state.xp);
-          state.mobsKilled++;
-          saveGameProgress();   // 🔥 ФИКС B — сохраняем после mobsKilled++
-          if (state.mobsKilled > 0 && state.mobsKilled % state.mobsPerLocation === 0) {
-            state.mobLevel++;
-            haptic('success');
-            showToast('🌟 Локация ' + state.mobLevel + '!', 'success');
-            saveGameProgress();   // 🔥 ФИКС B — сохраняем после level up
-          }
-        }
-      }).catch(e => console.error(e));
-    }
-    setTimeout(() => spawnMob(), 300);
+    handleMobKill();
   } else {
     const hpFill = document.getElementById('mob-hp-fill');
     if (hpFill) hpFill.style.width = Math.max(0, (state.currentMobHp / state.maxMobHp) * 100) + '%';
@@ -2594,10 +2963,62 @@ async function hitMob(event) {
   }
 
   if (typeof renderProfileGame === 'function') renderProfileGame();
-  saveGameProgress();   // 🔥 ФИКС B — сохраняем в конце (актуальный HP)
+  saveGameProgress();
 }
 
-// АПГРЕЙДЫ
+function handleMobKill() {
+  state.currentMobHp = 0;
+  state.isSpawning = true;
+  const hpFill = document.getElementById('mob-hp-fill'); if (hpFill) hpFill.style.width = '0%';
+  const hpText = document.getElementById('mob-info'); if (hpText) hpText.textContent = 'HP: 0 / ' + Math.round(state.maxMobHp);
+
+  // 🔑 инкремент СИНХРОННО, до ответа сервера — чтобы spawnMob увидел правильное значение
+  const wasBoss = state.isBoss;
+  state.mobsKilled++;
+  saveGameProgress();
+
+  // Босс дропает промо + бафф
+  if (wasBoss) {
+    fetch(API_URL + '/api/clicker/promos/drop', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},
+      body: JSON.stringify({ user_id: MY_ID })
+    }).then(r => r.json()).then(d => {
+      if (d && d.ok && d.code) {
+        state.promoDrops.push({ code: d.code, discount: d.discount, at: Date.now(), status: 'pending' });
+        showToast(`🎁 Босс дропнул промокод ${d.code}! (-${d.discount}%)`, 'success');
+        haptic('success');
+        loadPromosInGame();
+      }
+    }).catch(() => {});
+    state.buffs.push({ type: 'damage', mult: 2, expires: Date.now() + 30000, icon: '🔥', label: 'x2 урона' });
+    showToast('🔥 Бафф: x2 урона на 30 сек', 'success');
+    renderBuffs();
+  }
+
+  if (clickBuffer > 0) {
+    const clicksToSend = clickBuffer;
+    clickBuffer = 0;
+    fetch(API_URL + '/api/clicker/click_batch', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({ user_id: MY_ID, clicks: clicksToSend })
+    }).then(r => r.json()).then(data => {
+      if (data.ok) {
+        state.xp = data.xp;
+        updateLevelCard(state.xp);
+        if (state.mobsKilled > 0 && state.mobsKilled % state.mobsPerLocation === 0) {
+          state.mobLevel++;
+          haptic('success');
+          showToast('🌟 Локация ' + state.mobLevel + '!', 'success');
+          saveGameProgress();
+        }
+      }
+    }).catch(e => console.error(e));
+  }
+  setTimeout(() => spawnMob(), 300);
+}
+
+// ===== АПГРЕЙДЫ =====
 async function upgradeAuto() {
   haptic('medium');
   try {
@@ -2619,14 +3040,8 @@ async function buyItem(key) {
       body: JSON.stringify({ user_id: MY_ID, item_key: key })
     });
     const data = await r.json();
-    if (data.ok) {
-      state.xp = data.xp;
-      updateLevelCard(state.xp);
-      showToast('Куплено: ' + data.item, 'success');
-      playSound(600, 0.1, 'sine');
-      haptic('success');
-      loadStatus();
-    } else showToast(data.message || 'Ошибка', 'error');
+    if (data.ok) { state.xp = data.xp; updateLevelCard(state.xp); showToast('Куплено: ' + data.item, 'success'); playSound(600, 0.1, 'sine'); haptic('success'); loadStatus(); }
+    else showToast(data.message || 'Ошибка', 'error');
   } catch (e) { showToast('Ошибка сети', 'error'); }
 }
 
@@ -2638,14 +3053,8 @@ async function buyCosmetic(key) {
       body: JSON.stringify({ user_id: MY_ID, item_type: 'none', item_key: key })
     });
     const data = await r.json();
-    if (data.ok) {
-      state.xp = data.xp;
-      updateLevelCard(state.xp);
-      showToast('Куплено!', 'success');
-      playSound(600, 0.1, 'sine');
-      haptic('success');
-      loadStatus();
-    } else showToast(data.message || 'Ошибка', 'error');
+    if (data.ok) { state.xp = data.xp; updateLevelCard(state.xp); showToast('Куплено!', 'success'); playSound(600, 0.1, 'sine'); haptic('success'); loadStatus(); }
+    else showToast(data.message || 'Ошибка', 'error');
   } catch (e) { showToast('Ошибка сети', 'error'); }
 }
 
@@ -2667,7 +3076,7 @@ async function equipCosmetic(key, type) {
   } catch (e) { showToast('Ошибка сети', 'error'); }
 }
 
-// ЛИДЕРБОРД
+// ===== ЛИДЕРБОРД (с никами) =====
 async function loadLeaderboard() {
   try {
     const r = await fetch(API_URL + '/api/clicker/leaderboard', { headers: { 'ngrok-skip-browser-warning': 'true' } });
@@ -2678,13 +3087,21 @@ async function loadLeaderboard() {
     rows.forEach((row, i) => {
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
       const isMe = row.user_id === MY_ID;
-      html += `<div class="lb-item ${isMe ? 'me' : ''}"><div style="font-weight:700">${medal} ${row.public_id} ${isMe ? ' (ты)' : ''}</div><div style="font-weight:800;color:var(--accent)">${fmt(row.score)} XP</div></div>`;
+      const name = row.display_name || row.username || row.public_id || `Игрок ${row.user_id}`;
+      const sub = row.username ? '@' + escapeHtml(row.username) : escapeHtml(row.public_id || '');
+      html += `<div class="lb-item ${isMe ? 'me' : ''}">
+        <div class="lb-main">
+          <div style="font-weight:700">${medal} <b>${escapeHtml(name)}</b>${isMe ? ' (ты)' : ''}</div>
+          ${sub ? `<div class="lb-name">${sub}</div>` : ''}
+        </div>
+        <div style="font-weight:800;color:var(--accent)">${fmt(row.score)} XP</div>
+      </div>`;
     });
     box.innerHTML = html;
   } catch (e) { document.getElementById('leaderboard-list').innerHTML = '<p style="color:var(--danger);text-align:center">Ошибка загрузки</p>'; }
 }
 
-// АВТОКЛИК
+// ===== АВТОКЛИК =====
 async function handleAutoClick() {
   if (!MY_ID || document.hidden) return;
   try {
@@ -2695,7 +3112,7 @@ async function handleAutoClick() {
   } catch (e) {}
 }
 
-// КВЕСТЫ
+// ===== КВЕСТЫ =====
 async function loadQuests() {
   if (!MY_ID) return;
   try {
@@ -2708,13 +3125,9 @@ async function loadQuests() {
       div.className = 'quest-item';
       const percent = Math.min(100, (q.progress / q.target) * 100);
       let action = '';
-      if (q.claimed) {
-        action = '<span style="color:var(--success);font-weight:700;font-size:12px">✅ Забрано</span>';
-      } else if (q.can_claim) {
-        action = `<button onclick="claimQuest('${q.id}')" style="padding:6px 14px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--gold),#ff8a4a);color:#000;font-weight:800;font-size:12px;cursor:pointer">🎁 Забрать</button>`;
-      } else {
-        action = `<span style="opacity:.5;font-size:12px">${q.progress}/${q.target}</span>`;
-      }
+      if (q.claimed) action = '<span style="color:var(--success);font-weight:700;font-size:12px">✅ Забрано</span>';
+      else if (q.can_claim) action = `<button onclick="claimQuest('${q.id}')" style="padding:6px 14px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--gold),#ff8a4a);color:#000;font-weight:800;font-size:12px;cursor:pointer">🎁 Забрать</button>`;
+      else action = `<span style="opacity:.5;font-size:12px">${q.progress}/${q.target}</span>`;
       div.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
           <div style="font-weight:700;flex:1;font-size:14px">${escapeHtml(q.name)}</div>
@@ -2750,7 +3163,7 @@ async function claimQuest(questId) {
   } catch (e) { showToast('Ошибка сети', 'error'); }
 }
 
-// ЕЖЕДНЕВНЫЙ БОНУС
+// ===== ЕЖЕДНЕВНЫЙ БОНУС =====
 const DAILY_BONUS_KEY = 'daily_bonus_' + MY_ID;
 function checkDailyBonus() {
   const last = lsGet(DAILY_BONUS_KEY, 0);
@@ -2772,21 +3185,17 @@ function checkDailyBonus() {
     if (dot) dot.classList.remove('show');
   } else {
     card.classList.remove('claimed');
-    if (sub) sub.textContent = 'Заберите бонус прямо сейчас!';   // 🔥 ФИКС Bonus — без хардкода «500 XP»
+    if (sub) sub.textContent = 'Заберите бонус прямо сейчас!';
     if (btn) btn.textContent = 'Забрать';
     if (dot) dot.classList.add('show');
   }
 }
 
-// ФИКС #5 — fallback не обходит серверный cooldown
 async function claimDailyBonus() {
   const last = lsGet(DAILY_BONUS_KEY, 0);
   const now = Date.now();
   const cooldown = 24 * 3600 * 1000;
-  if (now - last < cooldown) {
-    showToast('Бонус уже получен сегодня', 'warning');
-    return;
-  }
+  if (now - last < cooldown) { showToast('Бонус уже получен сегодня', 'warning'); return; }
   haptic('success');
   try {
     const r = await fetch(API_URL + '/api/clicker/daily_bonus', {
@@ -2794,7 +3203,6 @@ async function claimDailyBonus() {
       body: JSON.stringify({ user_id: MY_ID })
     });
     const data = await r.json();
-
     if (data.ok) {
       lsSet(DAILY_BONUS_KEY, now);
       state.xp = (typeof data.xp === 'number') ? data.xp : (state.xp + (data.bonus || 500));
@@ -2805,42 +3213,22 @@ async function claimDailyBonus() {
       loadStatus();
       return;
     }
-
-    // Сервер ЯВНО ответил cooldown → синхронизируем локально, fallback НЕ делаем
     if (data.error === 'cooldown') {
       const cooldownMs = 24 * 3600 * 1000;
       const remainingMs = (data.next_in_seconds || 86400) * 1000;
       const realLast = now - (cooldownMs - remainingMs);
       lsSet(DAILY_BONUS_KEY, realLast);
-      const nextH = Math.ceil(remainingMs / 3600000);
-      showToast(`Следующий через ${nextH}ч`, 'warning');
+      showToast(`Следующий через ${Math.ceil(remainingMs / 3600000)}ч`, 'warning');
       checkDailyBonus();
       return;
     }
-
-    // Только сетевая ошибка / отсутствие endpoint → fallback через click_batch
-    const r2 = await fetch(API_URL + '/api/clicker/click_batch', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-      body: JSON.stringify({ user_id: MY_ID, clicks: 500 })
-    });
-    const d2 = await r2.json();
-    if (d2.ok) {
-      lsSet(DAILY_BONUS_KEY, now);
-      state.xp = d2.xp;
-      updateLevelCard(state.xp);
-      showToast('+500 XP получено!', 'success');
-      haptic('success');
-      checkDailyBonus();
-      loadStatus();
-    } else {
-      showToast('Не удалось получить бонус', 'error');
-    }
+    showToast('Не удалось получить бонус', 'error');
   } catch (e) {
     showToast('Ошибка сети', 'error');
   }
 }
 
-// PRESTIGE
+// ===== PRESTIGE =====
 function updatePrestigeUI() {
   const s = document.getElementById('prestige-souls'); if (s) s.textContent = state.prestige_level || 0;
   const b = document.getElementById('prestige-bonus'); if (b) b.textContent = '+' + ((state.prestige_level || 0) * 10) + '%';
@@ -2861,19 +3249,90 @@ async function doPrestige() {
       state.prestige_level = data.total_prestige;
       state.mobsKilled = 0;
       state.mobLevel = 1;
-      state.currentMobHp = 100;    // 🔥 ФИКС B — сбрасываем и HP
-      state.maxMobHp = 100;         // 🔥 ФИКС B
+      state.currentMobHp = 100;
+      state.maxMobHp = 100;
       updatePlayerStats('prestige', data.souls || 1);
       haptic('success');
-      saveGameProgress();           // 🔥 ФИКС B — сохраняем сброс прогресса
+      saveGameProgress();
       loadStatus();
     } else showToast(data.message || 'Ошибка', 'error');
   } catch (e) { showToast('Ошибка сети', 'error'); }
 }
-</script>
 
-<!-- ===== §6 ПРОФИЛЬ-КЛИКЕР ===== -->
+// ===== ПРОМО-ИНВЕНТАРЬ =====
+async function loadPromosInGame() {
+  if (!MY_ID) return;
+  try {
+    const r = await fetch(API_URL + '/api/clicker/promos/' + MY_ID, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (r.ok) {
+      const list = await r.json();
+      const map = new Map();
+      (state.promoDrops || []).forEach(p => map.set(p.code, p));
+      (list || []).forEach(p => map.set(p.code, { ...map.get(p.code), ...p }));
+      state.promoDrops = Array.from(map.values());
+    }
+  } catch (e) {}
+  const badge = document.getElementById('promo-badge');
+  const b2 = document.getElementById('promo-count-menu');
+  const cnt = (state.promoDrops || []).filter(p => p.status === 'pending').length;
+  if (badge) { badge.textContent = cnt; badge.classList.toggle('show', cnt > 0); }
+  if (b2) { b2.textContent = cnt; b2.style.display = cnt > 0 ? 'inline-block' : 'none'; }
+}
+
+async function openPromoInventory() {
+  haptic('light');
+  const c = document.getElementById('promo-inventory-content');
+  document.getElementById('promo-inventory-modal').classList.add('active');
+  c.innerHTML = '<p style="text-align:center;opacity:.5;padding:20px">Загрузка...</p>';
+
+  await loadPromosInGame(); // ← подтягиваем с сервера
+
+  const list = state.promoDrops || [];
+  if (!list.length) {
+    c.innerHTML = `<div class="empty-state"><div class="empty-icon">🎟</div><h3>Пока пусто</h3><p>Промокоды падают с боссов и за достижения</p></div>`;
+  } else {
+    let html = '';
+    list.forEach(p => {
+      html += `<div class="promo-inv-item">
+        <div style="flex:1">
+          <div class="promo-inv-code">${escapeHtml(p.code)}</div>
+          <div class="promo-inv-status">${p.status === 'used' ? '✅ Использован' : '⏳ Ожидает'}</div>
+        </div>
+        <div class="promo-inv-disc">-${p.discount}%</div>
+        ${p.status !== 'claimed' ? `
+  <button class="btn-buy" style="background:var(--success);box-shadow:none" onclick="applyPromoFromInventory('${escapeHtml(p.code)}')" title="Применить">✓</button>
+  <button class="btn-buy" style="background:rgba(255,255,255,.1);box-shadow:none" onclick="copyPromo('${escapeHtml(p.code)}')" title="Скопировать">📋</button>
+` : ''}
+      </div>`;
+    });
+    c.innerHTML = html;
+  }
+}
+function closePromoInventory() { document.getElementById('promo-inventory-modal').classList.remove('active'); }
+function copyPromo(code) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code)
+      .then(() => { showToast('Скопировано: ' + code, 'success'); haptic('success'); })
+      .catch(() => { showToast(code, 'info'); });
+  } else {
+    showToast(code, 'info');
+  }
+}
+function applyPromoFromInventory(code) {
+  closePromoInventory();
+  lsSet('pending_promo_' + MY_ID, code);
+  haptic('success');
+  if (cart.length > 0) {
+    openCart();
+  } else {
+    showToast('Промокод сохранён — применится при заказе', 'success');
+  }
+}
+</script>
 <script>
+/* ============================================================
+   §6 ПРОФИЛЬ-КЛИКЕР + ФИНАЛЬНЫЕ ИНИЦИАЛИЗАЦИИ
+   ============================================================ */
 function renderProfileGame() {
   const g = (typeof state !== 'undefined') ? state : null;
   if (!g) return;
@@ -2881,32 +3340,56 @@ function renderProfileGame() {
   const pwEl = document.getElementById('pg-power'); if (pwEl) pwEl.textContent = fmt(g.total_power);
   const crEl = document.getElementById('pg-crit'); if (crEl) crEl.textContent = Math.round(g.crit_chance * 100) + '%';
   const lvEl = document.getElementById('pg-level'); if (lvEl) lvEl.textContent = 'Ур. ' + g.mobLevel;
+
   const hpFill = document.getElementById('pg-hp-fill');
   if (hpFill) hpFill.style.width = Math.max(0, (g.currentMobHp / g.maxMobHp) * 100) + '%';
   const hpText = document.getElementById('pg-hp-text');
   if (hpText) hpText.textContent = `HP: ${Math.max(0, Math.round(g.currentMobHp))} / ${Math.round(g.maxMobHp)}`;
-  const mob = document.getElementById('pg-mob-emoji');
-  if (mob) {
-    const skin = (typeof cosmetics !== 'undefined' && cosmetics.length) ? cosmetics.find(c => c.key === g.active_skin) : null;
-    mob.textContent = skin ? skin.emoji : '👤';
+
+  // 🔥 показываем РЕАЛЬНОГО моба из текущей локации
+  const mobEl = document.getElementById('pg-mob-emoji');
+  if (mobEl) {
+    const loc = locations[(g.mobLevel - 1) % locations.length];
+    mobEl.textContent = g.isBoss ? loc.bossEmoji : loc.mobs[g.mobLevel % loc.mobs.length];
+  }
+  // Аватар героя — отдельная маленькая иконка над HP (добавь в HTML рядом с pg-mob-emoji)
+  const heroEl = document.getElementById('pg-hero-mini');
+  if (heroEl) {
+    const skin = cosmetics.find(c => c.key === g.active_skin);
+    heroEl.textContent = skin ? skin.emoji : '👤';
   }
   updateLevelCard(g.xp);
 }
 
 async function profileHit(event) {
   if (typeof hitMob !== 'function') return;
+  const card = document.querySelector('.pg-mob');
+  if (card && event && event.clientX) {
+    const rect = card.getBoundingClientRect();
+    const float = document.createElement('div');
+    float.className = 'floating-text';
+    float.style.left = (event.clientX - rect.left) + 'px';
+    float.style.top  = (event.clientY - rect.top) + 'px';
+    float.style.fontSize = '18px';
+    const dmg = state.total_power * (typeof comboMultiplier !== 'undefined' ? comboMultiplier : 1);
+    float.textContent = fmt(dmg);
+    card.style.position = 'relative';
+    card.appendChild(float);
+    setTimeout(() => float.remove(), 700);
+  }
   await hitMob(event);
   renderProfileGame();
 }
 
-setTimeout(() => { try { renderProfileGame(); } catch(e){} }, 500);
+// Финальные инициализации
+setTimeout(() => { try { renderProfileGame(); } catch (e) {} }, 500);
+setTimeout(() => { try { updateCartBadge(); updateFreeShipping(); syncSettingsToggle(); } catch (e) {} }, 400);
 
 window.addEventListener('load', () => {
   const st = document.getElementById('sound-toggle');
   if (st) st.textContent = getSoundToggleIcon();
+  syncSettingsToggle();
 });
-
-setTimeout(() => { try { updateCartBadge(); updateFreeShipping(); } catch(e){} }, 400);
 </script>
 
 </body>
