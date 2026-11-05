@@ -2918,7 +2918,8 @@ function showReferral() {
 }
 
 /* ============ §19 CLICKER — STATE ============ */
-const SAVED_GAME_KEY = 'game_state_' + MY_ID;
+// 🔥 v2 — сбрасываем старое сохранение с 750 HP
+const SAVED_GAME_KEY = 'game_state_v2_' + MY_ID;
 const savedGame = lsGet(SAVED_GAME_KEY, null);
 
 let state = {
@@ -2928,8 +2929,8 @@ let state = {
   mobLevel: (savedGame && savedGame.mobLevel) || 1,
   mobsKilled: (savedGame && savedGame.mobsKilled) || 0,
   mobsPerLocation: 20,
-  currentMobHp: (savedGame && savedGame.currentMobHp) || 750,
-  maxMobHp: (savedGame && savedGame.maxMobHp) || 750,
+  currentMobHp: (savedGame && savedGame.currentMobHp) || 150,
+  maxMobHp: (savedGame && savedGame.maxMobHp) || 150,
   isBoss: false, isSpawning: false, loaded: false
 };
 if (savedGame && state.mobsKilled > 0 && state.mobsKilled % 10 === 0) state.isBoss = true;
@@ -3029,12 +3030,11 @@ async function loadCosmetics() {
 }
 
 function getMobHp(level, isBoss) {
-  // 🔥 НЕРФ: HP ×5 по всей шкале, босс ×10 вместо ×8
-  let base = 750 + (level - 1) * 750;
+  // 🔥 База 150 (было 750) — убиваемо за разумное число кликов
+  let base = 150 + (level - 1) * 150;
   if (isBoss) base *= 10;
   return base;
 }
-
 function spawnMob() {
   state.isSpawning = false;
   state.isBoss = (state.mobsKilled > 0 && state.mobsKilled % 10 === 0);
@@ -3228,6 +3228,35 @@ function spawnCritParticles(x, y) {
   } catch(e){}
 }
 
+async function sendClickBatch() {
+  if (clickBuffer <= 0) return null;
+  const clicksToSend = clickBuffer;
+  clickBuffer = 0;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  try {
+    const r = await fetch(API_URL + '/api/clicker/click_batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+      body: JSON.stringify({ user_id: MY_ID, clicks: clicksToSend }),
+      signal: controller.signal,
+    });
+    const data = await r.json();
+    if (data.ok) {
+      state.xp = data.xp;
+      updateLevelCard(state.xp);
+      $('clicker-xp').textContent = fmt(state.xp);
+      return data;
+    }
+  } catch(e) {
+    // вернуть буфер, попробуем на следующем ударе
+    clickBuffer += clicksToSend;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+  return null;
+}
+
 async function hitMob(event) {
   if (state.currentMobHp <= 0 || state.isSpawning) return;
   updateCombo();
@@ -3243,6 +3272,11 @@ async function hitMob(event) {
   state.currentMobHp -= damage;
   clickBuffer++;
   updatePlayerStats('clicks');
+
+  // 🔥 NEW: периодическая отправка — XP растут в реальном времени, не дожидаясь убийства моба
+  if (clickBuffer >= 50 && state.currentMobHp > 0) {
+    sendClickBatch();   // fire-and-forget, не блокируем UI
+  }
 
   try {
     if (event && event.clientX !== undefined) {
@@ -3273,39 +3307,18 @@ async function hitMob(event) {
     const hpFill = $('mob-hp-fill'); if (hpFill) hpFill.style.width = '0%';
     $('mob-info').textContent = 'HP: 0 / ' + Math.round(state.maxMobHp);
 
-    if (clickBuffer > 0) {
-      const clicksToSend = clickBuffer;
-      clickBuffer = 0;
-      // 🔥 NEW: таймаут 5с — чтобы не зависнуть, если сервер недоступен
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      try {
-        const r = await fetch(API_URL + '/api/clicker/click_batch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-          body: JSON.stringify({ user_id: MY_ID, clicks: clicksToSend }),
-          signal: controller.signal,
-        });
-        const data = await r.json();
-        if (data.ok) {
-          state.xp = data.xp;
-          updateLevelCard(state.xp);
-          state.mobsKilled++;
-          if (state.mobsKilled > 0 && state.mobsKilled % state.mobsPerLocation === 0) {
-            state.mobLevel++;
-            haptic('success');
-            showToast('🌟 Локация ' + state.mobLevel + '!', 'success');
-          }
-          if (wasBoss) tryPromoDrop('boss');
-          saveGameProgress();
-          render();
-        }
-      } catch(e) {
-        // Тихо — просто вернём буфер обратно, попробуем на следующем ударе
-        clickBuffer += clicksToSend;
-      } finally {
-        clearTimeout(timeoutId);
+    // Отправляем финальный батч (уже с последними кликами)
+    const batchResult = await sendClickBatch();
+    if (batchResult) {
+      state.mobsKilled++;
+      if (state.mobsKilled > 0 && state.mobsKilled % state.mobsPerLocation === 0) {
+        state.mobLevel++;
+        haptic('success');
+        showToast('🌟 Локация ' + state.mobLevel + '!', 'success');
       }
+      if (wasBoss) tryPromoDrop('boss');
+      saveGameProgress();
+      render();
     }
     setTimeout(() => spawnMob(), 300);
   } else {
@@ -3320,11 +3333,23 @@ async function hitMob(event) {
 async function handleAutoClick() {
   if (!MY_ID || document.hidden) return;
   try {
-    await fetch(API_URL + '/api/clicker/auto_damage', {
+    const r = await fetch(API_URL + '/api/clicker/auto_damage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ user_id: MY_ID, seconds: 2 })
     });
+    const data = await r.json();
+    // 🔥 FIX: обновляем XP из ответа пассивки (раньше ответ игнорировался)
+        if (data && data.ok && data.points > 0) {
+      // 🔥 FIX: используем xp из сервера, если пришёл
+      if (typeof data.xp === 'number') {
+        state.xp = data.xp;
+      } else {
+        state.xp += data.points;
+      }
+      updateLevelCard(state.xp);
+      const el = $('clicker-xp'); if (el) el.textContent = fmt(state.xp);
+    }
   } catch(e){}
 }
 
