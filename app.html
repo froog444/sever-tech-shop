@@ -1281,12 +1281,12 @@ body {
     <h3 style="margin-bottom:12px;font-size:15px">📜 Ежедневные квесты</h3>
     <div id="quests-list"></div>
   </div>
-  <div id="tab-prestige" class="tab-content" style="display:none">
+    <div id="tab-prestige" class="tab-content" style="display:none">
     <div class="prestige-card">
       <div class="prestige-title">✨ ПЕРЕРОЖДЕНИЕ ✨</div>
-      <p style="font-size:13px;opacity:.85;margin-bottom:14px">Сбросьте прогресс и получите <b>Души</b>. Каждая — <b>+10% урона</b> навсегда.</p>
+      <p style="font-size:13px;opacity:.85;margin-bottom:14px">Сбросьте прогресс и получите <b>Души</b>. Каждая даёт <b>×1.25 к урону</b> навсегда — с каждым разом всё сильнее.</p>
       <div style="font-size:16px;margin-bottom:12px">Душ: <b id="prestige-souls" style="color:var(--gold)">0</b></div>
-      <div style="font-size:13px;margin-bottom:14px">Бонус: <b id="prestige-bonus" style="color:var(--accent)">+0%</b></div>
+      <div style="font-size:13px;margin-bottom:14px">Бонус урона: <b id="prestige-bonus" style="color:var(--accent)">+0%</b></div>
       <button class="btn-buy" style="width:100%;padding:14px;font-size:15px" onclick="doPrestige()">Переродиться (10 000 XP)</button>
     </div>
   </div>
@@ -1297,7 +1297,8 @@ body {
     <div class="tab" data-tab="quests" onclick="gameSwitchTab('quests', this)">📜<span class="tab-dot" id="bonus-dot"></span></div>
     <div class="tab" data-tab="prestige" onclick="gameSwitchTab('prestige', this)">✨</div>
   </div>
-  <h3 style="margin:20px 0 10px;font-size:15px">🏆 Топ-10 недели</h3>
+    <h3 style="margin:20px 0 10px;font-size:15px">🏆 Топ-10 недели</h3>
+  <div id="leaderboard-meta" style="font-size:11px;opacity:.6;text-align:center;margin-bottom:10px"></div>
   <div id="leaderboard-list"><p style="text-align:center;opacity:.7">Загрузка...</p></div>
 </div>
 
@@ -2921,14 +2922,14 @@ const SAVED_GAME_KEY = 'game_state_' + MY_ID;
 const savedGame = lsGet(SAVED_GAME_KEY, null);
 
 let state = {
-  xp: 0, total_power: 1, crit_chance: 0.15, crit_mult: 10, items: [],
+  xp: 0, total_power: 1, crit_chance: 0.02, crit_mult: 10, items: [],
   active_skin: 'skin_default', active_bg: 'bg_default', active_title: 'title_noob',
   prestige_level: 0, clickerLevel: 0,
   mobLevel: (savedGame && savedGame.mobLevel) || 1,
   mobsKilled: (savedGame && savedGame.mobsKilled) || 0,
   mobsPerLocation: 20,
-  currentMobHp: (savedGame && savedGame.currentMobHp) || 100,
-  maxMobHp: (savedGame && savedGame.maxMobHp) || 100,
+  currentMobHp: (savedGame && savedGame.currentMobHp) || 750,
+  maxMobHp: (savedGame && savedGame.maxMobHp) || 750,
   isBoss: false, isSpawning: false, loaded: false
 };
 if (savedGame && state.mobsKilled > 0 && state.mobsKilled % 10 === 0) state.isBoss = true;
@@ -3000,7 +3001,7 @@ async function loadStatus() {
     if (data.ok) {
       state.xp = data.xp;
       state.total_power = data.total_power;
-      state.crit_chance = data.crit_chance || 0.15;
+      state.crit_chance = (data.crit_chance != null) ? data.crit_chance : 0.02;  // 🔥 дефолт 2%
       state.crit_mult = data.crit_mult || 10;
       state.items = data.items;
       state.active_skin = data.active_skin || 'skin_default';
@@ -3028,8 +3029,9 @@ async function loadCosmetics() {
 }
 
 function getMobHp(level, isBoss) {
-  let base = 150 + (level - 1) * 150;
-  if (isBoss) base *= 8;
+  // 🔥 НЕРФ: HP ×5 по всей шкале, босс ×10 вместо ×8
+  let base = 750 + (level - 1) * 750;
+  if (isBoss) base *= 10;
   return base;
 }
 
@@ -3086,7 +3088,8 @@ function renderRealStats() {
   const el = $('real-stats');
   if (!el) return;
   const itemsCount = (state.items || []).reduce((s, i) => s + i.count, 0);
-  const prestigeBonus = (state.prestige_level || 0) * 10;
+  // 🔥 Экспоненциальный бонус душ: 1.25^prestige_level
+  const prestigeBonus = Math.round((Math.pow(1.25, state.prestige_level || 0) - 1) * 100);
   el.innerHTML = `
     <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="opacity:.7">База урона:</span><b>${fmt(state.total_power)}</b></div>
     <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="opacity:.7">Крит-шанс:</span><b>${Math.round(state.crit_chance * 100)}%</b></div>
@@ -3105,7 +3108,7 @@ function renderClickerShop() {
       ? `<div class="item-icon">${svgIcons[item.key]}</div>`
       : `<div style="font-size:32px;width:40px;text-align:center">${item.emoji}</div>`;
     let extra = `+${item.power} урон`;
-    if (item.key === 'cpu') extra += ' · +5% крит';
+    if (item.key === 'cpu') extra += ' · +0.3% крит';   // 🔥 было +5%
     if (item.key === 'gpu') extra += ' · +1 крит-множитель';
     const div = document.createElement('div');
     div.className = 'shop-item';
@@ -3414,8 +3417,9 @@ async function doPrestige() {
       state.prestige_level = data.total_prestige;
       state.mobsKilled = 0;
       state.mobLevel = 1;
-      state.currentMobHp = 100;
-      state.maxMobHp = 100;
+      // 🔥 FIX: сбрасываем HP в 0, чтобы loadStatus → spawnMob() пересчитал по новой формуле
+      state.currentMobHp = 0;
+      state.maxMobHp = 0;
       updatePlayerStats('prestige', data.souls || 1);
       haptic('success');
       saveGameProgress();
@@ -3557,38 +3561,73 @@ async function claimDailyBonus() {
 
 function updatePrestigeUI() {
   const s = $('prestige-souls'); if (s) s.textContent = state.prestige_level || 0;
-  const b = $('prestige-bonus'); if (b) b.textContent = '+' + ((state.prestige_level || 0) * 10) + '%';
+  // 🔥 Экспоненциальный бонус: 1.25^level
+  const bonusPct = Math.round((Math.pow(1.25, state.prestige_level || 0) - 1) * 100);
+  const b = $('prestige-bonus'); if (b) b.textContent = '+' + bonusPct + '%';
 }
 
 /* ============ §24 LEADERBOARD ============ */
+let _lbMetaTimer = null;
 async function loadLeaderboard() {
   try {
     const r = await fetch(API_URL + '/api/clicker/leaderboard', { headers: { 'ngrok-skip-browser-warning': 'true' } });
     const rows = await r.json();
     const box = $('leaderboard-list');
     if (!rows || rows.length === 0) {
-      box.innerHTML = '<p style="text-align:center;opacity:.7;font-size:13px">Пока никто не играл. Будь первым!</p>';
-      return;
+      box.innerHTML = '<p style="text-align:center;opacity:.7;font-size:13px">Пока никто не играл на этой неделе. Будь первым!</p>';
+    } else {
+      box.innerHTML = rows.map((row, i) => {
+        const rank = i + 1;
+        const rankCls = rank <= 3 ? `top${rank}` : '';
+        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+        const isMe = row.user_id === MY_ID;
+        const nick = row.nickname || row.public_id || 'Игрок';
+        const initial = (nick || '?').charAt(0).toUpperCase();
+        return `
+          <div class="lb-item ${isMe ? 'me' : ''}">
+            <div class="lb-rank ${rankCls}">${medal}</div>
+            <div class="lb-avatar">${escapeHtml(initial)}</div>
+            <div class="lb-name">${escapeHtml(nick)}<small>${escapeHtml(row.public_id || '')}</small></div>
+            <div class="lb-score">${fmt(row.score)}</div>
+          </div>`;
+      }).join('');
     }
-    box.innerHTML = rows.map((row, i) => {
-      const rank = i + 1;
-      const rankCls = rank <= 3 ? `top${rank}` : '';
-      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-      const isMe = row.user_id === MY_ID;
-      const nick = row.nickname || row.public_id || 'Игрок';
-      const initial = (nick || '?').charAt(0).toUpperCase();
-      return `
-        <div class="lb-item ${isMe ? 'me' : ''}">
-          <div class="lb-rank ${rankCls}">${medal}</div>
-          <div class="lb-avatar">${escapeHtml(initial)}</div>
-          <div class="lb-name">${escapeHtml(nick)}<small>${escapeHtml(row.public_id || '')}</small></div>
-          <div class="lb-score">${fmt(row.score)}</div>
-        </div>`;
-    }).join('');
   } catch(e) {
     $('leaderboard-list').innerHTML = '<p style="color:var(--danger);text-align:center;font-size:13px">Ошибка загрузки</p>';
   }
+  loadLeaderboardMeta();
 }
+
+async function loadLeaderboardMeta() {
+  const el = $('leaderboard-meta');
+  if (!el) return;
+  try {
+    const r = await fetch(API_URL + '/api/clicker/leaderboard/meta', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    const d = await r.json();
+    if (!d.ok) return;
+    const update = () => {
+      const secs = Math.max(0, (d.seconds_left || 0) - Math.floor((Date.now() - _lbMetaLoadedAt) / 1000));
+      const days = Math.floor(secs / 86400);
+      const hours = Math.floor((secs % 86400) / 3600);
+      const mins = Math.floor((secs % 3600) / 60);
+      const parts = [];
+      if (days > 0) parts.push(`${days} д`);
+      if (hours > 0) parts.push(`${hours} ч`);
+      parts.push(`${mins} мин`);
+      el.innerHTML = `⏳ Сброс рейтинга через <b style="color:var(--accent)">${parts.join(' ')}</b>`;
+      if (secs <= 0) {
+        // Неделя сменилась — перегружаем лидерборд
+        clearInterval(_lbMetaTimer);
+        loadLeaderboard();
+      }
+    };
+    _lbMetaLoadedAt = Date.now();
+    update();
+    if (_lbMetaTimer) clearInterval(_lbMetaTimer);
+    _lbMetaTimer = setInterval(update, 60000);
+  } catch(e) {}
+}
+let _lbMetaLoadedAt = 0;
 
 /* ============ §25 TAB SWITCHING ============ */
 function gameSwitchTab(tab, el) {
