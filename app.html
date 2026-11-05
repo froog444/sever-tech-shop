@@ -1281,13 +1281,21 @@ body {
     <h3 style="margin-bottom:12px;font-size:15px">📜 Ежедневные квесты</h3>
     <div id="quests-list"></div>
   </div>
-    <div id="tab-prestige" class="tab-content" style="display:none">
+
+      <div id="tab-prestige" class="tab-content" style="display:none">
     <div class="prestige-card">
       <div class="prestige-title">✨ ПЕРЕРОЖДЕНИЕ ✨</div>
-      <p style="font-size:13px;opacity:.85;margin-bottom:14px">Сбросьте прогресс и получите <b>Души</b>. Каждая даёт <b>×1.25 к урону</b> навсегда — с каждым разом всё сильнее.</p>
+      <p style="font-size:13px;opacity:.85;margin-bottom:14px">
+        Сбросьте прогресс и получите <b>Души</b>. Каждая даёт <b>×1.15 к урону</b> навсегда — с каждым разом всё сильнее.
+      </p>
       <div style="font-size:16px;margin-bottom:12px">Душ: <b id="prestige-souls" style="color:var(--gold)">0</b></div>
       <div style="font-size:13px;margin-bottom:14px">Бонус урона: <b id="prestige-bonus" style="color:var(--accent)">+0%</b></div>
-      <button class="btn-buy" style="width:100%;padding:14px;font-size:15px" onclick="doPrestige()">Переродиться (10 000 XP)</button>
+      <button class="btn-buy" id="btn-prestige"
+              style="width:100%;padding:14px;font-size:15px"
+              onclick="doPrestige()">Переродиться (10 000 XP)</button>
+      <div style="font-size:11px;opacity:.55;margin-top:10px">
+        При перерождении XP сбросится, предметы и скины сохранятся
+      </div>
     </div>
   </div>
   <div class="tabs">
@@ -2161,18 +2169,43 @@ function updateCartBadge() {
 }
 
 /* ============ §9b CART TOTAL + PROMO PREVIEW ============ */
+// Кэш промокодов
+const _promoCache = {};
+async function lookupPromoDiscount(code) {
+  if (!code) return 0;
+  code = String(code).trim().toUpperCase();
+  if (code in _promoCache) return _promoCache[code];
+  const found = myPromos.find(p => p.code === code);
+  if (found) { _promoCache[code] = found.discount; return found.discount; }
+  try {
+    const r = await fetch(`${API_URL}/api/promo/${encodeURIComponent(code)}`,
+      { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.ok) { _promoCache[code] = d.discount; return d.discount; }
+    }
+  } catch(e) {}
+  _promoCache[code] = 0;
+  return 0;
+}
+
+let _promoTimer = null;
 function renderCartTotal() {
-  const el = $('cart-total');
-  if (!el) return;
-  const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const promoVal = ($('order-promo')?.value || '').trim().toUpperCase();
-  const found = myPromos.find(p => p.code === promoVal);
-  if (found) {
-    const discounted = Math.round(total * (1 - found.discount / 100));
-    el.innerHTML = `Итого: <s style="opacity:.5;font-size:16px">${fmtMoney(total)}</s> ${fmtMoney(discounted)} <span style="color:var(--gold);font-size:13px">-${found.discount}%</span>`;
-  } else {
-    el.textContent = `Итого: ${fmtMoney(total)}`;
-  }
+  clearTimeout(_promoTimer);
+  _promoTimer = setTimeout(async () => {
+    const el = $('cart-total');
+    if (!el) return;
+    const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    const promoVal = ($('order-promo')?.value || '').trim().toUpperCase();
+    if (!promoVal) { el.textContent = `Итого: ${fmtMoney(total)}`; return; }
+    const discount = await lookupPromoDiscount(promoVal);
+    if (discount > 0) {
+      const discounted = Math.round(total * (1 - discount / 100) * 100) / 100;
+      el.innerHTML = `Итого: <s style="opacity:.5;font-size:16px">${fmtMoney(total)}</s> ${fmtMoney(discounted)} <span style="color:var(--gold);font-size:13px">-${discount}%</span>`;
+    } else {
+      el.textContent = `Итого: ${fmtMoney(total)}`;
+    }
+  }, 250);
 }
 
 function updateCartUI() {
@@ -2497,7 +2530,16 @@ async function submitOrder() {
   btn.textContent = 'Отправка...';
   haptic('medium');
 
-  const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const itemsSum = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+
+// Применяем скидку так же, как её посчитает сервер
+let appliedDiscount = 0;
+if (promo) {
+  appliedDiscount = await lookupPromoDiscount(promo);
+}
+const total = appliedDiscount > 0
+  ? Math.round(itemsSum * (1 - appliedDiscount / 100) * 100) / 100
+  : itemsSum;
   // 🔥 NEW: idempotency_key — защита от двойного сабмита при сетевых сбоях
   const idemKey = 'ord_' + MY_ID + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
 
@@ -2728,7 +2770,12 @@ async function loadMessages() {
       return;
     }
     messages.forEach(m => {
-      const isMe = m.sender_id === MY_ID;
+      let isMe;
+      if (currentChatType === 'support') {
+        isMe = (m.sender_type || 'client') === 'client';
+      } else {
+        isMe = m.sender_id === MY_ID;
+      }
       const cls = isMe ? 'client' : 'courier';
       const time = (m.created_at||'').slice(11,16);
       box.innerHTML += `<div class="msg ${cls}">${escapeHtml(m.text)}<span class="msg-time">${time}</span></div>`;
@@ -2900,8 +2947,8 @@ let state = {
   mobLevel: (savedGame && savedGame.mobLevel) || 1,
   mobsKilled: (savedGame && savedGame.mobsKilled) || 0,
   mobsPerLocation: 20,
-  currentMobHp: (savedGame && savedGame.currentMobHp) || 150,
-  maxMobHp: (savedGame && savedGame.maxMobHp) || 150,
+  currentMobHp: (savedGame && savedGame.currentMobHp) || 100,
+  maxMobHp: (savedGame && savedGame.maxMobHp) || 100,
   isBoss: false, isSpawning: false, loaded: false
 };
 if (savedGame && state.mobsKilled > 0 && state.mobsKilled % 10 === 0) state.isBoss = true;
@@ -3011,8 +3058,9 @@ async function loadCosmetics() {
 }
 
 function getMobHp(level, isBoss) {
-  // 🔥 База 150 (было 750) — убиваемо за разумное число кликов
-  let base = 150 + (level - 1) * 150;
+  // 🔥 БЫЛО: 150 + (level-1)*150  → линейно, копится быстро
+  // 🔥 СТАЛО: экспоненциально, +15% за уровень
+  let base = Math.floor(100 * Math.pow(1.20, level - 1));
   if (isBoss) base *= 10;
   return base;
 }
@@ -3070,7 +3118,7 @@ function renderRealStats() {
   if (!el) return;
   const itemsCount = (state.items || []).reduce((s, i) => s + i.count, 0);
   // 🔥 Экспоненциальный бонус душ: 1.25^prestige_level
-  const prestigeBonus = Math.round((Math.pow(1.25, state.prestige_level || 0) - 1) * 100);
+  const prestigeBonus = Math.round((state.prestige_level || 0) * 15);
   el.innerHTML = `
     <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="opacity:.7">База урона:</span><b>${fmt(state.total_power)}</b></div>
     <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="opacity:.7">Крит-шанс:</span><b>${Math.round(state.crit_chance * 100)}%</b></div>
@@ -3416,10 +3464,23 @@ async function equipCosmetic(key, type) {
     } else showToast(data.message || 'Ошибка', 'error');
   } catch(e) { showToast('Ошибка сети', 'error'); }
 }
-
+let prestigeLocked = false;
 async function doPrestige() {
+  if (prestigeLocked) { showToast('Подождите...', 'warning'); return; }
   if (state.xp < 10000) { showToast('Нужно 10 000 XP!', 'warning'); return; }
-  if (!confirm('Сбросить прогресс и получить души?')) return;
+
+  // 🔥 та же формула, что на сервере
+  const soulsCount = Math.max(1, Math.min(200, Math.floor(Math.sqrt(state.xp / 10000))));
+  const bonusPct = Math.round(soulsCount * 15);
+
+  const msg = `Перерождение!\n\n` +
+              `• Получите ${soulsCount} душ (+${bonusPct}% урона навсегда)\n` +
+              `• XP и прогресс мобов сбросятся\n` +
+              `• Предметы и скины сохранятся\n\n` +
+              `Продолжить?`;
+  if (!confirm(msg)) return;
+
+  prestigeLocked = true;
   haptic('medium');
   try {
     const r = await fetch(API_URL + '/api/clicker/prestige', {
@@ -3433,16 +3494,24 @@ async function doPrestige() {
       state.prestige_level = data.total_prestige;
       state.mobsKilled = 0;
       state.mobLevel = 1;
-      // 🔥 FIX: сбрасываем HP в 0, чтобы loadStatus → spawnMob() пересчитал по новой формуле
       state.currentMobHp = 0;
       state.maxMobHp = 0;
       updatePlayerStats('prestige', data.souls || 1);
       haptic('success');
       saveGameProgress();
-      loadStatus();
-    } else showToast(data.message || 'Ошибка', 'error');
-  } catch(e) { showToast('Ошибка сети', 'error'); }
+      await loadStatus();
+      render();
+      updatePrestigeUI();
+    } else {
+      showToast(data.message || 'Ошибка', 'error');
+    }
+  } catch(e) {
+    showToast('Ошибка сети', 'error');
+  } finally {
+    prestigeLocked = false;
+  }
 }
+
 
 /* ============ §22 PROMO DROPS ============ */
 async function tryPromoDrop(reason) {
@@ -3577,8 +3646,7 @@ async function claimDailyBonus() {
 
 function updatePrestigeUI() {
   const s = $('prestige-souls'); if (s) s.textContent = state.prestige_level || 0;
-  // 🔥 Экспоненциальный бонус: 1.25^level
-  const bonusPct = Math.round((Math.pow(1.25, state.prestige_level || 0) - 1) * 100);
+  const bonusPct = Math.round((state.prestige_level || 0) * 15);
   const b = $('prestige-bonus'); if (b) b.textContent = '+' + bonusPct + '%';
 }
 
