@@ -1706,6 +1706,11 @@ function goGame() {
     if (typeof initAudio === 'function') initAudio();
     loadStatus();
     loadLeaderboard();
+  } else {
+    // 🔥 FIX: если состояние уже загружено (зашли через профиль/сплэш),
+    //         render() раньше не вызывался → магазин оставался пустым.
+    render();
+    loadLeaderboard();  // лидерборд тоже мог устареть
   }
 }
 
@@ -1791,15 +1796,33 @@ function onbFinish() {
 }
 
 /* ============ §6 FEED & CATEGORIES ============ */
+// 🔥 NEW: единый кэш каталога — 1 запрос вместо N+1
+let _catalogCache = null;
+let _catalogAt = 0;
+const CATALOG_TTL = 60000;
+
+async function _fetchCatalog(force = false) {
+  const now = Date.now();
+  if (!force && _catalogCache && (now - _catalogAt) < CATALOG_TTL) {
+    return _catalogCache;
+  }
+  const r = await fetch(API_URL + '/api/catalog', { headers: { 'ngrok-skip-browser-warning': 'true' } });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const data = await r.json();
+  _catalogCache = data;
+  _catalogAt = now;
+  // прокинем в _productsCache для поиска/похожих
+  (data.products || []).forEach(p => _productsCache[p.id] = p);
+  return data;
+}
+
 async function initFeed() {
   const chips = $('feed-chips');
   chips.innerHTML = '<div class="chip active">Все</div>';
   try {
-    const r = await fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const cats = await r.json();
-    const safeCats = Array.isArray(cats) ? cats.filter(c => c && c.name) : [];
-    const all = [{ name: 'Все' }, ...safeCats];
+    const data = await _fetchCatalog(true);
+    const cats = (data.categories || []).filter(c => c && c.name);
+    const all = [{ name: 'Все' }, ...cats];
     chips.innerHTML = all.map((c, i) =>
       `<div class="chip ${i === 0 ? 'active' : ''}" data-idx="${i}">${escapeHtml(c.name)}</div>`
     ).join('');
@@ -1822,29 +1845,9 @@ async function selectCategory(name, el) {
   const grid = $('product-grid');
   grid.innerHTML = skeletonGrid(4);
   try {
-    let products = [];
-    if (name === 'Все') {
-      const rc = await fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } });
-      const cats = rc.ok ? await rc.json() : [];
-      const safeCats = Array.isArray(cats) ? cats.filter(c => c && c.name) : [];
-      const results = await Promise.all(
-        safeCats.map(c =>
-          fetch(`${API_URL}/api/products/${encodeURIComponent(c.name)}`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
-            .then(res => res.ok ? res.json() : [])
-            .catch(() => [])
-        )
-      );
-      products = results.filter(Array.isArray).flat();
-    } else {
-      const r = await fetch(`${API_URL}/api/products/${encodeURIComponent(name)}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-      if (r.ok) {
-        const data = await r.json();
-        products = Array.isArray(data) ? data : [];
-      }
-    }
-    products = products.filter(p => p && typeof p === 'object' && p.id);
-    products.forEach(p => _productsCache[p.id] = p);
-    window._lastProducts = products;
+    const data = await _fetchCatalog();   // из кэша
+    const all = data.products || [];
+    const products = name === 'Все' ? all : all.filter(p => p.category === name);
     if (!products.length) {
       grid.innerHTML = `<div style="grid-column:span 2"><div class="empty-state"><div class="empty-icon">📦</div><h3>Пусто</h3><p>Товаров пока нет</p></div></div>`;
       return;
@@ -1852,38 +1855,6 @@ async function selectCategory(name, el) {
     renderProductGrid(grid, products);
   } catch (e) {
     console.error('[selectCategory]', e);
-    grid.innerHTML = '<p style="grid-column:span 2;text-align:center;color:var(--danger)">Ошибка загрузки</p>';
-  }
-}
-
-async function selectCategory(name, el) {
-  haptic('light');
-  document.querySelectorAll('#feed-chips .chip').forEach(c => c.classList.remove('active'));
-  if (el) el.classList.add('active');
-  const grid = $('product-grid');
-  grid.innerHTML = skeletonGrid(4);
-  try {
-    let products;
-    if (name === 'Все') {
-      const cats = await fetch(API_URL + '/api/categories', { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(r => r.json());
-      const results = await Promise.all(
-        cats.map(c =>
-          fetch(`${API_URL}/api/products/${encodeURIComponent(c.name)}`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
-            .then(r => r.json()).catch(() => [])
-        )
-      );
-      products = results.flat();
-    } else {
-      products = await fetch(`${API_URL}/api/products/${encodeURIComponent(name)}`, { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(r => r.json());
-    }
-    products.forEach(p => _productsCache[p.id] = p);
-    window._lastProducts = products;
-    if (!products.length) {
-      grid.innerHTML = `<div style="grid-column:span 2"><div class="empty-state"><div class="empty-icon">📦</div><h3>Пусто</h3><p>Товаров пока нет</p></div></div>`;
-      return;
-    }
-    renderProductGrid(grid, products);
-  } catch(e) {
     grid.innerHTML = '<p style="grid-column:span 2;text-align:center;color:var(--danger)">Ошибка загрузки</p>';
   }
 }
@@ -2998,13 +2969,23 @@ function playSound(freq, dur, type) {
 async function loadStatus() {
   try {
     const r = await fetch(API_URL + '/api/clicker/status/' + MY_ID, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    // 🔥 FIX: 429 или 5xx — не пытаемся парсить HTML как JSON
+    if (!r.ok) {
+      console.warn('[loadStatus] HTTP', r.status, '— пропускаем обновление items');
+      return;
+    }
     const data = await r.json();
-    if (data.ok) {
+    if (data && data.ok) {
       state.xp = data.xp;
       state.total_power = data.total_power;
-      state.crit_chance = (data.crit_chance != null) ? data.crit_chance : 0.02;  // 🔥 дефолт 2%
+      state.crit_chance = (data.crit_chance != null) ? data.crit_chance : 0.02;
       state.crit_mult = data.crit_mult || 10;
-      state.items = data.items;
+      // 🔥 FIX: затираем items только если сервер прислал непустой массив
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        state.items = data.items;
+      } else {
+        console.warn('[loadStatus] empty items from server, keeping old', state.items);
+      }
       state.active_skin = data.active_skin || 'skin_default';
       state.active_bg = data.active_bg || 'bg_default';
       state.active_title = data.active_title || 'title_noob';
@@ -3014,7 +2995,7 @@ async function loadStatus() {
       if (state.currentMobHp <= 0) spawnMob();
       else render();
     }
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error('[loadStatus] error', e); }
   loadCosmetics();
   renderProfileGame();
   checkDailyBonus();
@@ -3241,15 +3222,24 @@ async function sendClickBatch() {
       body: JSON.stringify({ user_id: MY_ID, clicks: clicksToSend }),
       signal: controller.signal,
     });
+    // 🔥 FIX: если 429/5xx — восстанавливаем клики, не теряем
+    if (!r.ok) {
+      console.warn('[click_batch] HTTP', r.status, '— возвращаем', clicksToSend, 'кликов в буфер');
+      clickBuffer += clicksToSend;
+      return null;
+    }
     const data = await r.json();
-    if (data.ok) {
+    console.log('[click_batch] sent', clicksToSend, '→', data);
+    if (data && data.ok) {
       state.xp = data.xp;
       updateLevelCard(state.xp);
       $('clicker-xp').textContent = fmt(state.xp);
       return data;
     }
+    // сервер вернул не ok — вернуть клики
+    clickBuffer += clicksToSend;
   } catch(e) {
-    // вернуть буфер, попробуем на следующем ударе
+    console.warn('[click_batch] failed, returning', clicksToSend, 'clicks', e);
     clickBuffer += clicksToSend;
   } finally {
     clearTimeout(timeoutId);
@@ -3338,13 +3328,14 @@ async function handleAutoClick() {
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
       body: JSON.stringify({ user_id: MY_ID, seconds: 2 })
     });
+    if (!r.ok) return;   // 🔥 429/5xx — тихо ждём следующий тик
     const data = await r.json();
-    // 🔥 FIX: обновляем XP из ответа пассивки (раньше ответ игнорировался)
-        if (data && data.ok && data.points > 0) {
-      // 🔥 FIX: используем xp из сервера, если пришёл
+    if (data && data.ok) {
+      // 🔥 FIX: если сервер вернул xp — берём его (не расходится с БД),
+      //         иначе добавляем points локально
       if (typeof data.xp === 'number') {
         state.xp = data.xp;
-      } else {
+      } else if (data.points > 0) {
         state.xp += data.points;
       }
       updateLevelCard(state.xp);
@@ -3593,12 +3584,18 @@ function updatePrestigeUI() {
 
 /* ============ §24 LEADERBOARD ============ */
 let _lbMetaTimer = null;
+let _lbMetaLoadedAt = 0;
+
 async function loadLeaderboard() {
   try {
     const r = await fetch(API_URL + '/api/clicker/leaderboard', { headers: { 'ngrok-skip-browser-warning': 'true' } });
-    const rows = await r.json();
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+
+    // 🔥 поддержка обоих форматов: старый массив и новый { ok, items, ... }
+    const rows = Array.isArray(data) ? data : (data.items || []);
     const box = $('leaderboard-list');
-    if (!rows || rows.length === 0) {
+    if (!rows.length) {
       box.innerHTML = '<p style="text-align:center;opacity:.7;font-size:13px">Пока никто не играл на этой неделе. Будь первым!</p>';
     } else {
       box.innerHTML = rows.map((row, i) => {
@@ -3617,10 +3614,39 @@ async function loadLeaderboard() {
           </div>`;
       }).join('');
     }
+
+    // 🔥 мета пришла в том же ответе — рендерим таймер
+    if (!Array.isArray(data) && typeof data.seconds_left === 'number') {
+      renderLeaderboardMeta(data.seconds_left);
+    }
   } catch(e) {
+    console.error('[leaderboard]', e);
     $('leaderboard-list').innerHTML = '<p style="color:var(--danger);text-align:center;font-size:13px">Ошибка загрузки</p>';
   }
-  loadLeaderboardMeta();
+}
+
+function renderLeaderboardMeta(secondsLeft) {
+  const el = $('leaderboard-meta');
+  if (!el) return;
+  const update = () => {
+    const secs = Math.max(0, secondsLeft - Math.floor((Date.now() - _lbMetaLoadedAt) / 1000));
+    const days = Math.floor(secs / 86400);
+    const hours = Math.floor((secs % 86400) / 3600);
+    const mins = Math.floor((secs % 3600) / 60);
+    const parts = [];
+    if (days > 0) parts.push(`${days} д`);
+    if (hours > 0) parts.push(`${hours} ч`);
+    parts.push(`${mins} мин`);
+    el.innerHTML = `⏳ Сброс рейтинга через <b style="color:var(--accent)">${parts.join(' ')}</b>`;
+    if (secs <= 0) {
+      clearInterval(_lbMetaTimer);
+      loadLeaderboard();
+    }
+  };
+  _lbMetaLoadedAt = Date.now();
+  update();
+  if (_lbMetaTimer) clearInterval(_lbMetaTimer);
+  _lbMetaTimer = setInterval(update, 60000);
 }
 
 async function loadLeaderboardMeta() {
@@ -3652,7 +3678,7 @@ async function loadLeaderboardMeta() {
     _lbMetaTimer = setInterval(update, 60000);
   } catch(e) {}
 }
-let _lbMetaLoadedAt = 0;
+
 
 /* ============ §25 TAB SWITCHING ============ */
 function gameSwitchTab(tab, el) {
