@@ -1040,7 +1040,7 @@ body {
 </head>
 <body>
 
-<div id="offline-banner">📴 Нет соединения — проверьте интернет</div>
+<div id="offline-banner" onclick="manualHealthRetry()" style="cursor:pointer">📴 Нет соединения — нажмите, чтобы проверить</div>
 
 <!-- SPLASH -->
 <div id="splash">
@@ -1437,7 +1437,7 @@ const API_URL = (_params.get('api') || 'https://2.26.22.148.nip.io').replace(/\/
 function imgUrl(raw) {
   if (!raw) return null;
   if (/^https?:\/\//.test(raw)) return raw;
-  return `${API_URL}/api/image/${raw}`;
+  return `${API_URL}/api/image/${encodeURIComponent(raw)}`;
 }
 
 let user = null;
@@ -1745,6 +1745,9 @@ function shopShowCatalog() {
 function backToProfile() {
   if (chatInterval) { clearInterval(chatInterval); chatInterval = null; }
   haptic('light');
+  // 🔒 возвращаем нижнее меню
+  const nav = $('main-nav');
+  if (nav) nav.style.display = 'flex';
   shopSwitchScreen('screen-profile');
   loadProfileData();
 }
@@ -1841,8 +1844,13 @@ async function initFeed() {
     await selectCategory('Все', chips.querySelector('.chip'));
   } catch (e) {
     console.error('[initFeed]', e);
+    // 🔒 очищаем chips, чтобы при следующем goShop() initFeed запустился заново
+    chips.innerHTML = '';
     const grid = $('product-grid');
-    grid.innerHTML = '<p style="grid-column:span 2;text-align:center;color:var(--danger)">Ошибка загрузки каталога</p>';
+    grid.innerHTML = `<div style="grid-column:span 2;text-align:center">
+      <p style="color:var(--danger);margin-bottom:12px">Ошибка загрузки каталога</p>
+      <button class="btn-add" style="max-width:200px;margin:0 auto" onclick="initFeed()">Повторить</button>
+    </div>`;
   }
 }
 
@@ -1889,8 +1897,9 @@ function renderProductGrid(grid, products) {
     const stock = Math.max(0, parseInt(p.stock) || 0);
     const isOut = stock <= 0;
     const fav = wishlist.some(w => w.id === p.id);
-    const imgHtml = p.image_url
-      ? `<img src="${imgUrl(p.image_url)}" loading="lazy" decoding="async" onerror="this.style.display='none';this.parentElement.innerHTML='📦';">`
+    const firstImg = String(p.image_url || '').split(',')[0].trim();
+    const imgHtml = firstImg
+      ? `<img src="${imgUrl(firstImg)}" loading="lazy" decoding="async" onerror="this.style.display='none';this.parentElement.innerHTML='📦';">`
       : '📦';
 
     // Безопасная проверка colors
@@ -2345,11 +2354,12 @@ function renderWishlist() {
     return;
   }
   let html = '<div class="wishlist-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
-  wishlist.forEach(item => {
+    wishlist.forEach(item => {
+    const wImg = String(item.image_url || '').split(',')[0].trim();
     html += `
       <div class="card" onclick="closeWishlist(); openProduct(${item.id})">
         <button class="card-fav active" onclick="event.stopPropagation(); toggleWishlist(${item.id}); renderWishlist();">❤️</button>
-        <div class="emoji">${item.image_url ? `<img src="${imgUrl(item.image_url)}">` : '📦'}</div>
+        <div class="emoji">${wImg ? `<img src="${imgUrl(wImg)}" onerror="this.parentElement.innerHTML='📦';">` : '📦'}</div>
         <div class="label">${escapeHtml(item.name)}</div>
         <div class="price">${fmtMoney(item.price)}</div>
       </div>`;
@@ -2374,11 +2384,14 @@ function renderRecent() {
   if (!section || !row) return;
   if (recentViewed.length === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
-  row.innerHTML = recentViewed.map(r => `
+    row.innerHTML = recentViewed.map(r => {
+    const rImg = String(r.image_url || '').split(',')[0].trim();
+    return `
     <div class="recent-card" onclick="openProduct(${r.id})">
-      <div class="rc-img">${r.image_url ? `<img src="${imgUrl(r.image_url)}" style="max-width:100%;max-height:100%">` : '📦'}</div>
+      <div class="rc-img">${rImg ? `<img src="${imgUrl(rImg)}" style="max-width:100%;max-height:100%" onerror="this.parentElement.innerHTML='📦';">` : '📦'}</div>
       <div class="rc-name">${escapeHtml(r.name)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 /* ============ §13 SEARCH ============ */
@@ -2420,12 +2433,15 @@ async function loadSimilarProducts(productId) {
     const items = await r.json();
     if (!items || items.length === 0) { block.style.display = 'none'; return; }
     block.style.display = 'block';
-    row.innerHTML = items.map(p => `
+    row.innerHTML = items.map(p => {
+      const sImg = String(p.image_url || '').split(',')[0].trim();
+      return `
       <div class="similar-card" onclick="closeProductModal(); setTimeout(() => openProduct(${p.id}), 50)">
-        <div class="sim-img">${p.image_url ? `<img src="${imgUrl(p.image_url)}" style="max-width:100%;max-height:100%">` : '📦'}</div>
+        <div class="sim-img">${sImg ? `<img src="${imgUrl(sImg)}" style="max-width:100%;max-height:100%" onerror="this.parentElement.innerHTML='📦';">` : '📦'}</div>
         <div class="sim-name">${escapeHtml(p.name)}</div>
         <div class="sim-price">${fmtMoney(p.price)}</div>
-      </div>`).join('');
+      </div>`;
+        }).join('');
   } catch(e) { block.style.display = 'none'; }
 }
 
@@ -2530,18 +2546,47 @@ async function submitOrder() {
   btn.textContent = 'Отправка...';
   haptic('medium');
 
-  const itemsSum = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    const itemsSum = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
-// Применяем скидку так же, как её посчитает сервер
+// Применяем скидку так же, как её посчитает сервер.
+// 🔥 ВАЖНО: купон продавца действует ТОЛЬКО на товары этого продавца —
+// в этом случае отдаём расчёт total серверу (total = itemsSum),
+// чтобы не словить invalid_promo_total.
 let appliedDiscount = 0;
+let isSellerCoupon = false;
 if (promo) {
-  appliedDiscount = await lookupPromoDiscount(promo);
+  try {
+    const pr = await fetch(`${API_URL}/api/promo/${encodeURIComponent(promo)}`,
+      { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (pr.ok) {
+      const pd = await pr.json();
+      if (pd.ok) {
+        appliedDiscount = pd.discount || 0;
+        isSellerCoupon = !!pd.seller_id;
+      }
+    }
+  } catch(e) {}
+  if (!appliedDiscount) appliedDiscount = await lookupPromoDiscount(promo);
 }
-const total = appliedDiscount > 0
-  ? Math.round(itemsSum * (1 - appliedDiscount / 100) * 100) / 100
-  : itemsSum;
+// Сервер сам решит, какую скидку применить (для купонов продавца — только на его товары).
+// Поэтому всегда отдаём полную сумму — сервер посчитает итог и запишет его в order.total.
+const total = itemsSum;
   // 🔥 NEW: idempotency_key — защита от двойного сабмита при сетевых сбоях
-  const idemKey = 'ord_' + MY_ID + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+  // 🔒 ключ живёт в sessionStorage, пока заказ не пройдёт успешно
+const IDEM_STORAGE = 'order_idem_' + MY_ID;
+const IDEM_CART_HASH = 'order_cart_hash_' + MY_ID;
+// 🔒 хеш корзины — если корзина изменилась, idemKey устарел
+const cartHash = JSON.stringify(
+  cart.map(i => [i.product_id, i.quantity, i.variant || ''])
+   .sort((a, b) => a[0] - b[0])
+);
+let idemKey = sessionStorage.getItem(IDEM_STORAGE);
+const savedHash = sessionStorage.getItem(IDEM_CART_HASH);
+if (!idemKey || savedHash !== cartHash) {
+  idemKey = 'ord_' + MY_ID + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+  sessionStorage.setItem(IDEM_STORAGE, idemKey);
+  sessionStorage.setItem(IDEM_CART_HASH, cartHash);
+}
 
   const orderData = {
     items: cart.map(i => ({
@@ -2569,6 +2614,7 @@ const total = appliedDiscount > 0
     const result = await r.json();
     if (result.ok) {
       haptic('success');
+      sessionStorage.removeItem(IDEM_STORAGE);   // 🔒 заказ прошёл — забываем ключ
       showReceipt(result);
       cart = [];
       saveCart();
@@ -2583,12 +2629,16 @@ const total = appliedDiscount > 0
       if (gb) { gb.textContent = '📍 Отправить геопозицию'; gb.classList.remove('ok'); }
       $('order-promo').value = '';
       renderCartTotal();
-    } else {
+        } else {
+      // 🔒 сервер отклонил заказ — сбрасываем ключ, чтобы юзер мог повторить
+      sessionStorage.removeItem(IDEM_STORAGE);
       let msg = result.message || result.error || 'Ошибка';
       if (typeof msg !== 'string') msg = 'Ошибка оформления';
       showToast(msg, 'error');
     }
   } catch(e) {
+    // 🔒 сеть упала — НЕ сбрасываем idemKey, чтобы retry-сабмит попал в тот же заказ
+    // (при успешном retry сервер вернёт полный чек и мы очистим ключ)
     showToast('Ошибка сети', 'error');
   } finally {
     submitLocked = false;
@@ -3016,33 +3066,32 @@ function playSound(freq, dur, type) {
 async function loadStatus() {
   try {
     const r = await fetch(API_URL + '/api/clicker/status/' + MY_ID, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-    // 🔥 FIX: 429 или 5xx — не пытаемся парсить HTML как JSON
     if (!r.ok) {
-      console.warn('[loadStatus] HTTP', r.status, '— пропускаем обновление items');
-      return;
-    }
-    const data = await r.json();
-    if (data && data.ok) {
-      state.xp = data.xp;
-      state.total_power = data.total_power;
-      state.crit_chance = (data.crit_chance != null) ? data.crit_chance : 0.02;
-      state.crit_mult = data.crit_mult || 10;
-      // 🔥 FIX: затираем items только если сервер прислал непустой массив
-      if (Array.isArray(data.items) && data.items.length > 0) {
-        state.items = data.items;
-      } else {
-        console.warn('[loadStatus] empty items from server, keeping old', state.items);
+      console.warn('[loadStatus] HTTP', r.status, '— используем локальный state');
+    } else {
+      const data = await r.json();
+      if (data && data.ok) {
+        state.xp = data.xp;
+        state.total_power = data.total_power;
+        state.crit_chance = (data.crit_chance != null) ? data.crit_chance : 0.02;
+        state.crit_mult = data.crit_mult || 10;
+        if (Array.isArray(data.items) && data.items.length > 0) {
+          state.items = data.items;
+        }
+        state.active_skin = data.active_skin || 'skin_default';
+        state.active_bg = data.active_bg || 'bg_default';
+        state.active_title = data.active_title || 'title_noob';
+        state.prestige_level = data.prestige_level || 0;
+        state.clickerLevel = data.clicker_level || 0;
+        updateLevelCard(state.xp);
       }
-      state.active_skin = data.active_skin || 'skin_default';
-      state.active_bg = data.active_bg || 'bg_default';
-      state.active_title = data.active_title || 'title_noob';
-      state.prestige_level = data.prestige_level || 0;
-      state.clickerLevel = data.clicker_level || 0;
-      updateLevelCard(state.xp);
-      if (state.currentMobHp <= 0) spawnMob();
-      else render();
     }
   } catch(e) { console.error('[loadStatus] error', e); }
+
+  // 🔒 рендерим ВСЕГДА — даже если сервер лежал
+  if (state.currentMobHp <= 0) spawnMob();
+  else render();
+
   loadCosmetics();
   renderProfileGame();
   checkDailyBonus();
